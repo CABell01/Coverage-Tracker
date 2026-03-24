@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Record Absence - Coverage Tracker{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Record an Absence</h2>
+    <p>Select a teacher and their absent periods to generate coverage options</p>
+</div>
+
+<div class="card">
+    <form method="POST" action="/absences/new">
+        <div class="form-group">
+            <label>Teacher</label>
+            <select name="teacher_id" required>
+                <option value="">— Select teacher —</option>
+                {% for t in teachers %}
+                <option value="{{ t.id }}">{{ t.name }} ({{ t.department }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ today }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Absent Periods</label>
+            <div class="checkbox-group">
+                {% for p in range(1, 9) %}
+                <label>
+                    <input type="checkbox" name="periods" value="{{ p }}"> Period {{ p }}
+                </label>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 8px;">
+                <label style="font-weight: 400; font-size: 13px; cursor: pointer;">
+                    <input type="checkbox" id="select-all"> Select all periods
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Reason (optional)</label>
+            <input type="text" name="reason" placeholder="e.g., Sick leave, Personal day">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Record Absence & Find Coverage</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('select-all').addEventListener('change', function() {
+    document.querySelectorAll('input[name="periods"]').forEach(cb => {
+        cb.checked = this.checked;
+    });
+});
+</script>
+{% endblock %}

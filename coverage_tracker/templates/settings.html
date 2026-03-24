@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Settings - Coverage Tracker{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Settings</h2>
+    <p>Configure coverage thresholds and scheduling parameters</p>
+</div>
+
+<div class="card">
+    <form method="POST" action="/settings">
+        <div class="form-group">
+            <label>Coverage Threshold</label>
+            <input type="number" name="coverage_threshold" value="{{ coverage_threshold }}" min="1" max="50">
+            <p style="color: #666; font-size: 12px; margin-top: 4px;">
+                Flag teachers who exceed this many coverages within the threshold window
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label>Threshold Window (days)</label>
+            <input type="number" name="threshold_window_days" value="{{ threshold_window_days }}" min="7" max="365">
+            <p style="color: #666; font-size: 12px; margin-top: 4px;">
+                Time window for the coverage threshold check
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label>Semester Start Date</label>
+            <input type="date" name="semester_start" value="{{ semester_start }}">
+            <p style="color: #666; font-size: 12px; margin-top: 4px;">
+                Used for semester-total coverage counts in fairness calculations
+            </p>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+    </form>
+</div>
+{% endblock %}

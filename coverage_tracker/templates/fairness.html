@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Fairness Report - Coverage Tracker{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Fairness Report</h2>
+    <p>Coverage load distribution across all teachers</p>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="label">Average Coverages / Teacher</div>
+        <div class="value blue">{{ "%.1f" | format(avg_coverages) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Teachers Flagged</div>
+        <div class="value {% if flagged_count > 0 %}red{% else %}green{% endif %}">{{ flagged_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Max Coverages</div>
+        <div class="value orange">{{ max_coverages }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Min Coverages</div>
+        <div class="value green">{{ min_coverages }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Teacher</th>
+                <th>Department</th>
+                <th>Semester Total</th>
+                <th>Last 14 Days</th>
+                <th>Today</th>
+                <th>Load</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in report %}
+            <tr>
+                <td><strong>{{ t.name }}</strong></td>
+                <td>{{ t.department }}</td>
+                <td>{{ t.semester_total }}</td>
+                <td>{{ t.last_14_days }}</td>
+                <td>{{ t.today }}</td>
+                <td>
+                    <div class="score-bar">
+                        <div class="score-bar-track" style="max-width: 150px;">
+                            <div class="score-bar-fill" style="width: {{ [t.semester_total * 10, 100] | min }}%; background: {% if t.flagged %}#ef4444{% else %}#818cf8{% endif %};"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if t.flagged %}
+                        <span class="flag-warning">{{ t.flag_reason }}</span>
+                    {% else %}
+                        <span class="badge badge-green">OK</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Upload CSV - Coverage Tracker{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Upload CSV Data</h2>
+    <p>Load or update teachers, schedules, and constraints from CSV files</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+
+    <div class="card">
+        <h3>Teachers</h3>
+        <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
+            Required columns: <code>name, department, email</code>
+        </p>
+        <form method="POST" action="/upload/teachers" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" name="file" accept=".csv" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload Teachers</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>Schedules</h3>
+        <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
+            Required columns: <code>teacher_name, day_of_week, period, subject, room, is_free</code>
+        </p>
+        <form method="POST" action="/upload/schedules" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" name="file" accept=".csv" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload Schedules</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>Constraints</h3>
+        <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
+            Required columns: <code>teacher_name, constraint_type, constraint_value</code><br>
+            Types: <code>no_subject, no_period, max_per_week, no_consecutive</code>
+        </p>
+        <form method="POST" action="/upload/constraints" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" name="file" accept=".csv" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload Constraints</button>
+        </form>
+    </div>
+
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <h3>Current Data Summary</h3>
+    <table>
+        <thead>
+            <tr><th>Data Type</th><th>Count</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Teachers</td><td>{{ teacher_count }}</td></tr>
+            <tr><td>Schedule entries</td><td>{{ schedule_count }}</td></tr>
+            <tr><td>Constraints</td><td>{{ constraint_count }}</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Absence Detail - Coverage Tracker{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Absence: {{ absence.teacher_name }}</h2>
+    <p>{{ absence.date }} — {{ absence.reason or 'No reason given' }}</p>
+</div>
+
+{% for period in absence.periods %}
+{% set class_info = class_infos.get(period, {}) %}
+{% set coverage = absence.period_coverage.get(period) %}
+
+<div class="card">
+    <h3>
+        Period {{ period }}
+        {% if class_info.get('subject') %}
+            — {{ class_info.subject }} ({{ class_info.room }})
+        {% else %}
+            — Free Period
+        {% endif %}
+    </h3>
+
+    {% if coverage %}
+    <div class="alert alert-success">
+        Covered by <strong>{{ coverage.covering_teacher }}</strong>
+        <span class="badge badge-green" style="margin-left: 8px;">{{ coverage.status }}</span>
+        <form method="POST" action="/coverage/cancel" style="display: inline; margin-left: 12px;">
+            <input type="hidden" name="coverage_id" value="{{ coverage.coverage_id }}">
+            <input type="hidden" name="absence_id" value="{{ absence.absence_id }}">
+            <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+        </form>
+    </div>
+    {% elif not class_info.get('subject') %}
+    <div class="alert alert-info">Free period — no coverage needed.</div>
+    {% else %}
+    <div class="alert alert-warning">No coverage assigned yet.</div>
+
+    {% if options.get(period) %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Teacher</th>
+                <th>Department</th>
+                <th>Fairness Score</th>
+                <th>Semester</th>
+                <th>Last 14 Days</th>
+                <th>Today</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for opt in options[period] %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><strong>{{ opt.teacher_name }}</strong></td>
+                <td>{{ opt.department }}</td>
+                <td>
+                    <div class="score-bar">
+                        <span>{{ "%.1f" | format(opt.score) }}</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: {{ [opt.score * 5, 100] | min }}%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ opt.coverages_this_semester }}</td>
+                <td>{{ opt.coverages_last_14_days }}</td>
+                <td>{{ opt.coverages_today }}</td>
+                <td>
+                    {% if opt.flagged %}
+                        <span class="flag-warning">{{ opt.flag_reason }}</span>
+                    {% else %}
+                        <span class="badge badge-green">OK</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="{{ absence.absence_id }}">
+                        <input type="hidden" name="teacher_id" value="{{ opt.teacher_id }}">
+                        <input type="hidden" name="date" value="{{ absence.date }}">
+                        <input type="hidden" name="period" value="{{ period }}">
+                        <input type="hidden" name="subject" value="{{ class_info.get('subject', '') }}">
+                        <input type="hidden" name="room" value="{{ class_info.get('room', '') }}">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #999; padding: 8px 0;">No available teachers found for this period.</p>
+    {% endif %}
+    {% endif %}
+</div>
+{% endfor %}
+
+<a href="/absences" class="btn btn-outline" style="margin-top: 8px;">Back to Absences</a>
+{% endblock %}

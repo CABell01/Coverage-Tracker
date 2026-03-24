@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Coverage Tracker{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Dashboard</h2>
+    <p>{{ today }} — Coverage overview</p>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="label">Active Teachers</div>
+        <div class="value blue">{{ teacher_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Absences Today</div>
+        <div class="value {% if absence_count > 0 %}red{% else %}green{% endif %}">{{ absence_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Uncovered Periods</div>
+        <div class="value {% if uncovered_count > 0 %}orange{% else %}green{% endif %}">{{ uncovered_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Teachers Flagged</div>
+        <div class="value {% if flagged_count > 0 %}red{% else %}green{% endif %}">{{ flagged_count }}</div>
+    </div>
+</div>
+
+{% if absences %}
+<div class="card">
+    <h3>Today's Absences</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Teacher</th>
+                <th>Reason</th>
+                <th>Periods</th>
+                <th>Coverage Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ab in absences %}
+            <tr>
+                <td><strong>{{ ab.teacher_name }}</strong></td>
+                <td>{{ ab.reason or '—' }}</td>
+                <td>{{ ab.periods | join(', ') }}</td>
+                <td>
+                    {% set covered = [] %}
+                    {% set uncovered = [] %}
+                    {% for p in ab.periods %}
+                        {% if ab.period_coverage[p] %}
+                            {% set _ = covered.append(p) %}
+                        {% else %}
+                            {% set _ = uncovered.append(p) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if uncovered %}
+                        <span class="badge badge-orange">{{ uncovered | length }} uncovered</span>
+                    {% endif %}
+                    {% if covered %}
+                        <span class="badge badge-green">{{ covered | length }} covered</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/absences/{{ ab.absence_id }}" class="btn btn-sm btn-primary">Manage</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <h3>Today's Absences</h3>
+    <p style="color: #666; padding: 20px 0; text-align: center;">No absences recorded for today.</p>
+    <div style="text-align: center;">
+        <a href="/absences/new" class="btn btn-primary">Record an Absence</a>
+    </div>
+</div>
+{% endif %}
+
+{% if flagged_teachers %}
+<div class="card">
+    <h3>High Coverage Load Alerts</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Teacher</th>
+                <th>Department</th>
+                <th>Coverages (Semester)</th>
+                <th>Coverages (Last 14 Days)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in flagged_teachers %}
+            <tr>
+                <td><strong>{{ t.name }}</strong></td>
+                <td>{{ t.department }}</td>
+                <td>{{ t.semester_total }}</td>
+                <td>{{ t.last_14_days }}</td>
+                <td><span class="flag-warning">{{ t.flag_reason }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}
