@@ -1,0 +1,81 @@
+teacher_name,day_of_week,period,subject,room,is_free
+Jane Smith,Monday,1,Algebra 1,Room 101,0
+Jane Smith,Monday,2,Geometry,Room 101,0
+Jane Smith,Monday,3,,,1
+Jane Smith,Monday,4,Algebra 2,Room 101,0
+Jane Smith,Monday,5,,,1
+Jane Smith,Monday,6,Algebra 1,Room 101,0
+Jane Smith,Monday,7,Geometry,Room 101,0
+Jane Smith,Monday,8,,,1
+Bob Johnson,Monday,1,,,1
+Bob Johnson,Monday,2,Biology,Lab 3,0
+Bob Johnson,Monday,3,Chemistry,Lab 3,0
+Bob Johnson,Monday,4,,,1
+Bob Johnson,Monday,5,Biology,Lab 3,0
+Bob Johnson,Monday,6,,,1
+Bob Johnson,Monday,7,Chemistry,Lab 3,0
+Bob Johnson,Monday,8,Biology,Lab 3,0
+Maria Garcia,Monday,1,English 9,Room 205,0
+Maria Garcia,Monday,2,,,1
+Maria Garcia,Monday,3,English 10,Room 205,0
+Maria Garcia,Monday,4,English 9,Room 205,0
+Maria Garcia,Monday,5,,,1
+Maria Garcia,Monday,6,,,1
+Maria Garcia,Monday,7,English 10,Room 205,0
+Maria Garcia,Monday,8,English 9,Room 205,0
+David Lee,Monday,1,World History,Room 302,0
+David Lee,Monday,2,US History,Room 302,0
+David Lee,Monday,3,,,1
+David Lee,Monday,4,,,1
+David Lee,Monday,5,World History,Room 302,0
+David Lee,Monday,6,US History,Room 302,0
+David Lee,Monday,7,,,1
+David Lee,Monday,8,World History,Room 302,0
+Sarah Chen,Monday,1,,,1
+Sarah Chen,Monday,2,Calculus,Room 103,0
+Sarah Chen,Monday,3,Statistics,Room 103,0
+Sarah Chen,Monday,4,,,1
+Sarah Chen,Monday,5,Calculus,Room 103,0
+Sarah Chen,Monday,6,Statistics,Room 103,0
+Sarah Chen,Monday,7,,,1
+Sarah Chen,Monday,8,,,1
+Tom Wilson,Monday,1,Physics,Lab 5,0
+Tom Wilson,Monday,2,,,1
+Tom Wilson,Monday,3,,,1
+Tom Wilson,Monday,4,Physics,Lab 5,0
+Tom Wilson,Monday,5,Physics,Lab 5,0
+Tom Wilson,Monday,6,,,1
+Tom Wilson,Monday,7,Physics,Lab 5,0
+Tom Wilson,Monday,8,,,1
+Amy Brown,Monday,1,,,1
+Amy Brown,Monday,2,Literature,Room 208,0
+Amy Brown,Monday,3,,,1
+Amy Brown,Monday,4,Writing,Room 208,0
+Amy Brown,Monday,5,Literature,Room 208,0
+Amy Brown,Monday,6,Writing,Room 208,0
+Amy Brown,Monday,7,,,1
+Amy Brown,Monday,8,,,1
+James Davis,Monday,1,Government,Room 305,0
+James Davis,Monday,2,,,1
+James Davis,Monday,3,Economics,Room 305,0
+James Davis,Monday,4,Government,Room 305,0
+James Davis,Monday,5,,,1
+James Davis,Monday,6,,,1
+James Davis,Monday,7,Economics,Room 305,0
+James Davis,Monday,8,,,1
+Lisa Park,Monday,1,Pre-Algebra,Room 104,0
+Lisa Park,Monday,2,Pre-Algebra,Room 104,0
+Lisa Park,Monday,3,,,1
+Lisa Park,Monday,4,,,1
+Lisa Park,Monday,5,Geometry,Room 104,0
+Lisa Park,Monday,6,Pre-Algebra,Room 104,0
+Lisa Park,Monday,7,,,1
+Lisa Park,Monday,8,Geometry,Room 104,0
+Michael Taylor,Monday,1,,,1
+Michael Taylor,Monday,2,Earth Science,Lab 7,0
+Michael Taylor,Monday,3,Earth Science,Lab 7,0
+Michael Taylor,Monday,4,,,1
+Michael Taylor,Monday,5,,,1
+Michael Taylor,Monday,6,Earth Science,Lab 7,0
+Michael Taylor,Monday,7,,,1
+Michael Taylor,Monday,8,Earth Science,Lab 7,0
