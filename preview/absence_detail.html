@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absence Detail - Coverage Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            padding: 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: #8888aa;
+            margin-top: 4px;
+        }
+
+        .nav-section {
+            padding: 16px 0;
+        }
+
+        .nav-section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6666888;
+            padding: 0 20px;
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: #b0b0c8;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+
+        .nav-link.active {
+            background: rgba(99,102,241,0.2);
+            color: #818cf8;
+            border-right: 3px solid #818cf8;
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        /* Main content */
+        .main {
+            margin-left: 240px;
+            flex: 1;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .page-header p {
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* Cards */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1a1a2e;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-card .value.red { color: #ef4444; }
+        .stat-card .value.green { color: #22c55e; }
+        .stat-card .value.blue { color: #3b82f6; }
+        .stat-card .value.orange { color: #f59e0b; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            border-bottom: 2px solid #e5e7eb;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8f9ff;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-red { background: #fef2f2; color: #dc2626; }
+        .badge-green { background: #f0fdf4; color: #16a34a; }
+        .badge-blue { background: #eff6ff; color: #2563eb; }
+        .badge-orange { background: #fffbeb; color: #d97706; }
+        .badge-gray { background: #f3f4f6; color: #6b7280; }
+
+        /* Flag indicator */
+        .flag-warning {
+            color: #dc2626;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        .form-group select,
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="number"],
+        .form-group input[type="file"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fff;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(129,140,248,0.15);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 400;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db;
+            color: #374151;
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .alert-warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .alert-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+
+        /* Score bar */
+        .score-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .score-bar-fill {
+            height: 8px;
+            border-radius: 4px;
+            background: #818cf8;
+        }
+
+        .score-bar-track {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            max-width: 100px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>Coverage Tracker</h1>
+            <p>Teacher Scheduling Tool</p>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Overview</div>
+            <a href="dashboard.html" class="nav-link ">
+                <span class="nav-icon">&#9632;</span> Dashboard
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Coverage</div>
+            <a href="absence_form.html" class="nav-link ">
+                <span class="nav-icon">+</span> Record Absence
+            </a>
+            <a href="absences.html" class="nav-link active">
+                <span class="nav-icon">&#9998;</span> Absences
+            </a>
+            <a href="history.html" class="nav-link ">
+                <span class="nav-icon">&#9776;</span> Coverage History
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Reports</div>
+            <a href="fairness.html" class="nav-link ">
+                <span class="nav-icon">&#9878;</span> Fairness Report
+            </a>
+            <a href="teachers.html" class="nav-link ">
+                <span class="nav-icon">&#9823;</span> Teachers
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Admin</div>
+            <a href="upload.html" class="nav-link ">
+                <span class="nav-icon">&#8657;</span> Upload CSV
+            </a>
+            <a href="settings.html" class="nav-link ">
+                <span class="nav-icon">&#9881;</span> Settings
+            </a>
+        </div>
+    </nav>
+
+    <main class="main">
+        
+            
+        
+
+        
+<div class="page-header">
+    <h2>Absence: Bob Johnson</h2>
+    <p>2026-03-23 — Sick day</p>
+</div>
+
+
+
+
+
+<div class="card">
+    <h3>
+        Period 1
+        
+            — Free Period
+        
+    </h3>
+
+    
+    <div class="alert alert-success">
+        Covered by <strong>Amy Brown</strong>
+        <span class="badge badge-green" style="margin-left: 8px;">assigned</span>
+        <form method="POST" action="/coverage/cancel" style="display: inline; margin-left: 12px;">
+            <input type="hidden" name="coverage_id" value="1">
+            <input type="hidden" name="absence_id" value="1">
+            <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+        </form>
+    </div>
+    
+</div>
+
+
+
+
+<div class="card">
+    <h3>
+        Period 2
+        
+            — Biology (Lab 3)
+        
+    </h3>
+
+    
+    <div class="alert alert-success">
+        Covered by <strong>Tom Wilson</strong>
+        <span class="badge badge-green" style="margin-left: 8px;">assigned</span>
+        <form method="POST" action="/coverage/cancel" style="display: inline; margin-left: 12px;">
+            <input type="hidden" name="coverage_id" value="2">
+            <input type="hidden" name="absence_id" value="1">
+            <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+        </form>
+    </div>
+    
+</div>
+
+
+
+
+<div class="card">
+    <h3>
+        Period 3
+        
+            — Chemistry (Lab 3)
+        
+    </h3>
+
+    
+    <div class="alert alert-warning">No coverage assigned yet.</div>
+
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Teacher</th>
+                <th>Department</th>
+                <th>Fairness Score</th>
+                <th>Semester</th>
+                <th>Last 14 Days</th>
+                <th>Today</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr>
+                <td>1</td>
+                <td><strong>David Lee</strong></td>
+                <td>History</td>
+                <td>
+                    <div class="score-bar">
+                        <span>0.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 0.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="4">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="3">
+                        <input type="hidden" name="subject" value="Chemistry">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td><strong>Jane Smith</strong></td>
+                <td>Math</td>
+                <td>
+                    <div class="score-bar">
+                        <span>0.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 0.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="1">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="3">
+                        <input type="hidden" name="subject" value="Chemistry">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>3</td>
+                <td><strong>Lisa Park</strong></td>
+                <td>Math</td>
+                <td>
+                    <div class="score-bar">
+                        <span>0.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 0.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="9">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="3">
+                        <input type="hidden" name="subject" value="Chemistry">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>4</td>
+                <td><strong>Tom Wilson</strong></td>
+                <td>Science</td>
+                <td>
+                    <div class="score-bar">
+                        <span>8.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 40.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="6">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="3">
+                        <input type="hidden" name="subject" value="Chemistry">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>5</td>
+                <td><strong>Amy Brown</strong></td>
+                <td>English</td>
+                <td>
+                    <div class="score-bar">
+                        <span>8.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 40.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="7">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="3">
+                        <input type="hidden" name="subject" value="Chemistry">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+        </tbody>
+    </table>
+    
+    
+</div>
+
+
+
+
+<div class="card">
+    <h3>
+        Period 4
+        
+            — Free Period
+        
+    </h3>
+
+    
+    <div class="alert alert-info">Free period — no coverage needed.</div>
+    
+</div>
+
+
+
+
+<div class="card">
+    <h3>
+        Period 5
+        
+            — Biology (Lab 3)
+        
+    </h3>
+
+    
+    <div class="alert alert-warning">No coverage assigned yet.</div>
+
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Teacher</th>
+                <th>Department</th>
+                <th>Fairness Score</th>
+                <th>Semester</th>
+                <th>Last 14 Days</th>
+                <th>Today</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr>
+                <td>1</td>
+                <td><strong>Jane Smith</strong></td>
+                <td>Math</td>
+                <td>
+                    <div class="score-bar">
+                        <span>0.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 0.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="1">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="5">
+                        <input type="hidden" name="subject" value="Biology">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>2</td>
+                <td><strong>James Davis</strong></td>
+                <td>History</td>
+                <td>
+                    <div class="score-bar">
+                        <span>0.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 0.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="8">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="5">
+                        <input type="hidden" name="subject" value="Biology">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>3</td>
+                <td><strong>Michael Taylor</strong></td>
+                <td>Science</td>
+                <td>
+                    <div class="score-bar">
+                        <span>0.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 0.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="10">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="5">
+                        <input type="hidden" name="subject" value="Biology">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>4</td>
+                <td><strong>Maria Garcia</strong></td>
+                <td>English</td>
+                <td>
+                    <div class="score-bar">
+                        <span>0.0</span>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width: 0.0%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>
+                    
+                        <span class="badge badge-green">OK</span>
+                    
+                </td>
+                <td>
+                    <form method="POST" action="/coverage/assign" style="display: inline;">
+                        <input type="hidden" name="absence_id" value="1">
+                        <input type="hidden" name="teacher_id" value="3">
+                        <input type="hidden" name="date" value="2026-03-23">
+                        <input type="hidden" name="period" value="5">
+                        <input type="hidden" name="subject" value="Biology">
+                        <input type="hidden" name="room" value="Lab 3">
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            
+        </tbody>
+    </table>
+    
+    
+</div>
+
+
+<a href="absences.html" class="btn btn-outline" style="margin-top: 8px;">Back to Absences</a>
+
+    </main>
+</body>
+</html>
