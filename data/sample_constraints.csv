@@ -1,9 +1,0 @@
-teacher_name,constraint_type,constraint_value
-Jane Smith,no_subject,Science
-Sarah Chen,no_subject,Science
-Lisa Park,no_subject,Science
-Bob Johnson,max_per_week,3
-Tom Wilson,max_per_week,3
-Michael Taylor,no_consecutive,true
-Amy Brown,no_subject,Science
-James Davis,max_per_week,2
