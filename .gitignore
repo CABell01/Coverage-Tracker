@@ -1,6 +1,6 @@
-# Xcode
-*.xcodeproj/xcuserdata/
-*.xcworkspace/xcuserdata/
+# Xcode project (created locally via Xcode > New Project)
+*.xcodeproj/
+*.xcworkspace/
 DerivedData/
 *.hmap
 *.ipa
