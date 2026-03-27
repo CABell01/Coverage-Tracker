@@ -7,22 +7,25 @@ struct ContentView: View {
                 WineListView()
             }
             .tabItem {
-                Label("Wines", systemImage: "wineglass")
+                Label("Wines", systemImage: "wineglass.fill")
             }
+            .tag(0)
 
             NavigationStack {
                 CellarMapView()
             }
             .tabItem {
-                Label("Cellar", systemImage: "square.grid.3x3")
+                Label("Cellar", systemImage: "square.grid.3x3.fill")
             }
+            .tag(1)
 
             NavigationStack {
                 HistoryView()
             }
             .tabItem {
-                Label("History", systemImage: "clock")
+                Label("History", systemImage: "clock.fill")
             }
+            .tag(2)
         }
     }
 }
