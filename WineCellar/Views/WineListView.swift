@@ -153,8 +153,8 @@ struct WineListView: View {
                         WineRowView(wine: wine)
                     }
                 }
-                .deleteDisabled(cellarSelection.isReadOnly)
                 .onDelete(perform: deleteWines)
+                .deleteDisabled(cellarSelection.isReadOnly)
             }
             .listStyle(.plain)
         }
