@@ -161,16 +161,22 @@ struct ImportView: View {
     }
 
     private func autoMapColumns(_ data: CSVData) {
-        let headers = data.headers.map { $0.lowercased().trimmingCharacters(in: .whitespaces) }
+        // Strip BOM and normalize headers
+        let headers = data.headers.map {
+            $0.replacingOccurrences(of: "\u{FEFF}", with: "")
+              .lowercased()
+              .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
 
         for (index, header) in headers.enumerated() {
-            if header == "wine" {
+            // Check "maker" before "name" since "wine maker" contains neither
+            if header.contains("maker") || header.contains("producer") || header.contains("winery") || header.contains("brand") {
+                mapping.producer = index
+            } else if header == "wine" {
                 // Exact match "wine" → variety (grape type)
                 mapping.variety = index
             } else if header.contains("name") && !header.contains("zone") {
                 mapping.name = index
-            } else if header.contains("producer") || header.contains("winery") || header.contains("brand") || header.contains("maker") {
-                mapping.producer = index
             } else if header.contains("variety") || header.contains("varietal") || header.contains("grape") || header.contains("type") {
                 mapping.variety = index
             } else if header.contains("country") {

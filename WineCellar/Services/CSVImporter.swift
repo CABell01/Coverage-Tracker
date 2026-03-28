@@ -16,7 +16,9 @@ struct CSVData {
 
 enum CSVImporter {
     static func parse(_ content: String) -> CSVData {
-        let lines = content.components(separatedBy: .newlines).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        // Strip BOM if present
+        let cleanContent = content.replacingOccurrences(of: "\u{FEFF}", with: "")
+        let lines = cleanContent.components(separatedBy: .newlines).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         guard let headerLine = lines.first else {
             return CSVData(headers: [], rows: [])
         }
