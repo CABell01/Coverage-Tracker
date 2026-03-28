@@ -22,6 +22,7 @@ struct WineInfo: Codable {
     var producer: String
     var variety: String
     var region: String
+    var country: String
     var vintage: Int
     var zone: String
     var slot: Int
@@ -56,6 +57,7 @@ enum CellarShareService {
                 producer: wine.producer,
                 variety: wine.variety,
                 region: wine.region,
+                country: wine.country,
                 vintage: wine.vintage,
                 zone: wine.zone,
                 slot: wine.slot,
@@ -128,6 +130,7 @@ enum CellarShareService {
                 producer: wineInfo.producer,
                 variety: wineInfo.variety,
                 region: wineInfo.region,
+                country: wineInfo.country,
                 vintage: wineInfo.vintage,
                 zone: wineInfo.zone,
                 slot: wineInfo.slot,

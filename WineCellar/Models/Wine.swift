@@ -7,6 +7,7 @@ final class Wine {
     var producer: String
     var variety: String
     var region: String
+    var country: String
     var vintage: Int
     var zone: String
     var slot: Int
@@ -20,6 +21,7 @@ final class Wine {
         producer: String = "",
         variety: String = "",
         region: String = "",
+        country: String = "",
         vintage: Int = Calendar.current.component(.year, from: Date()),
         zone: String = "",
         slot: Int = 1,
@@ -31,6 +33,7 @@ final class Wine {
         self.producer = producer
         self.variety = variety
         self.region = region
+        self.country = country
         self.vintage = vintage
         self.zone = zone
         self.slot = slot

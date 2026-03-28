@@ -14,6 +14,7 @@ struct AddWineView: View {
     @State private var customVariety: String = ""
     @State private var region: String = ""
     @State private var customRegion: String = ""
+    @State private var country: String = ""
     @State private var vintage: Int = Calendar.current.component(.year, from: Date())
     @State private var zone: String = ""
     @State private var slot: Int = 1
@@ -72,6 +73,8 @@ struct AddWineView: View {
                     TextField("Custom Region", text: $customRegion)
                 }
 
+                TextField("Country", text: $country)
+
                 Picker("Vintage", selection: $vintage) {
                     ForEach((1970...Calendar.current.component(.year, from: Date())).reversed(), id: \.self) { year in
                         Text(String(year)).tag(year)
@@ -116,6 +119,7 @@ struct AddWineView: View {
                     region = "Other"
                     customRegion = wine.region
                 }
+                country = wine.country
                 vintage = wine.vintage
                 zone = wine.zone
                 slot = wine.slot
@@ -154,6 +158,7 @@ struct AddWineView: View {
             wine.producer = producer
             wine.variety = effectiveVariety
             wine.region = effectiveRegion
+            wine.country = country
             wine.vintage = vintage
             wine.zone = zone
             wine.slot = slot
@@ -165,6 +170,7 @@ struct AddWineView: View {
                 producer: producer,
                 variety: effectiveVariety,
                 region: effectiveRegion,
+                country: country,
                 vintage: vintage,
                 zone: zone,
                 slot: slot,

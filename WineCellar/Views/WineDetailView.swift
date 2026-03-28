@@ -18,6 +18,9 @@ struct WineDetailView: View {
                 detailRow("Producer", value: wine.producer)
                 detailRow("Variety", value: wine.variety)
                 detailRow("Region", value: wine.region)
+                if !wine.country.isEmpty {
+                    detailRow("Country", value: wine.country)
+                }
                 detailRow("Vintage", value: String(wine.vintage))
             }
 

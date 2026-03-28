@@ -21,13 +21,16 @@ enum CSVImporter {
             return CSVData(headers: [], rows: [])
         }
 
-        let headers = parseLine(headerLine)
-        let rows = lines.dropFirst().map { CSVRow(values: parseLine($0)) }
+        // Detect delimiter: tab or comma
+        let delimiter: Character = headerLine.contains("\t") ? "\t" : ","
+
+        let headers = parseLine(headerLine, delimiter: delimiter)
+        let rows = lines.dropFirst().map { CSVRow(values: parseLine($0, delimiter: delimiter)) }
 
         return CSVData(headers: headers, rows: rows)
     }
 
-    private static func parseLine(_ line: String) -> [String] {
+    private static func parseLine(_ line: String, delimiter: Character = ",") -> [String] {
         var fields: [String] = []
         var current = ""
         var inQuotes = false
@@ -35,7 +38,7 @@ enum CSVImporter {
         for char in line {
             if char == "\"" {
                 inQuotes.toggle()
-            } else if char == "," && !inQuotes {
+            } else if char == delimiter && !inQuotes {
                 fields.append(current)
                 current = ""
             } else {
@@ -53,11 +56,16 @@ struct ColumnMapping {
     var producer: Int?
     var variety: Int?
     var region: Int?
+    var country: Int?
     var vintage: Int?
     var zone: Int?
     var slot: Int?
     var quantity: Int?
     var notes: Int?
+
+    var mappedCount: Int {
+        [name, producer, variety, region, country, vintage, zone, slot, quantity, notes].compactMap { $0 }.count
+    }
 
     func buildWine(from row: CSVRow) -> Wine {
         Wine(
@@ -65,6 +73,7 @@ struct ColumnMapping {
             producer: producer.map { row.value(at: $0) } ?? "",
             variety: variety.map { row.value(at: $0) } ?? "",
             region: region.map { row.value(at: $0) } ?? "",
+            country: country.map { row.value(at: $0) } ?? "",
             vintage: vintage.flatMap { Int(row.value(at: $0)) } ?? Calendar.current.component(.year, from: Date()),
             zone: zone.map { row.value(at: $0) } ?? "",
             slot: slot.flatMap { Int(row.value(at: $0)) } ?? 1,

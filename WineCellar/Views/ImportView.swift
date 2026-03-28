@@ -13,14 +13,16 @@ struct ImportView: View {
     @State private var importedCount = 0
     @State private var showingSuccess = false
     @State private var errorMessage: String?
+    @State private var drankColumnIndex: Int?
 
     private let wineFields: [(label: String, keyPath: WritableKeyPath<ColumnMapping, Int?>)] = [
         ("Name", \.name),
         ("Producer", \.producer),
         ("Variety", \.variety),
         ("Region", \.region),
+        ("Country", \.country),
         ("Vintage", \.vintage),
-        ("Zone", \.zone),
+        ("Zone/Location", \.zone),
         ("Slot", \.slot),
         ("Quantity", \.quantity),
         ("Notes", \.notes),
@@ -34,7 +36,7 @@ struct ImportView: View {
                 ContentUnavailableView {
                     Label("Import CSV", systemImage: "square.and.arrow.down")
                 } description: {
-                    Text("Select a CSV file to import your wine inventory.")
+                    Text("Select a CSV or tab-separated file to import your wine inventory.")
                 } actions: {
                     Button("Choose File") {
                         showingFilePicker = true
@@ -51,7 +53,7 @@ struct ImportView: View {
         }
         .fileImporter(
             isPresented: $showingFilePicker,
-            allowedContentTypes: [UTType.commaSeparatedText, UTType.plainText]
+            allowedContentTypes: [UTType.commaSeparatedText, UTType.plainText, UTType.tabSeparatedText]
         ) { result in
             handleFileSelection(result)
         }
@@ -100,9 +102,9 @@ struct ImportView: View {
                     previewRow("Producer", value: preview.producer)
                     previewRow("Variety", value: preview.variety)
                     previewRow("Region", value: preview.region)
+                    previewRow("Country", value: preview.country)
                     previewRow("Vintage", value: String(preview.vintage))
-                    previewRow("Zone", value: preview.zone)
-                    previewRow("Slot", value: "#\(preview.slot)")
+                    previewRow("Location", value: preview.zone)
                 }
             }
 
@@ -144,6 +146,10 @@ struct ImportView: View {
                 } else {
                     csvData = parsed
                     autoMapColumns(parsed)
+                    // Auto-import if mapping is confident (3+ fields matched)
+                    if mapping.mappedCount >= 3 {
+                        performImport(parsed)
+                    }
                 }
             } catch {
                 errorMessage = "Could not read file: \(error.localizedDescription)"
@@ -155,15 +161,20 @@ struct ImportView: View {
     }
 
     private func autoMapColumns(_ data: CSVData) {
-        let headers = data.headers.map { $0.lowercased() }
+        let headers = data.headers.map { $0.lowercased().trimmingCharacters(in: .whitespaces) }
 
         for (index, header) in headers.enumerated() {
-            if header.contains("name") && !header.contains("zone") {
+            if header == "wine" {
+                // Exact match "wine" → variety (grape type)
+                mapping.variety = index
+            } else if header.contains("name") && !header.contains("zone") {
                 mapping.name = index
-            } else if header.contains("producer") || header.contains("winery") || header.contains("brand") {
+            } else if header.contains("producer") || header.contains("winery") || header.contains("brand") || header.contains("maker") {
                 mapping.producer = index
             } else if header.contains("variety") || header.contains("varietal") || header.contains("grape") || header.contains("type") {
                 mapping.variety = index
+            } else if header.contains("country") {
+                mapping.country = index
             } else if header.contains("region") || header.contains("appellation") || header.contains("area") {
                 mapping.region = index
             } else if header.contains("vintage") || header.contains("year") {
@@ -176,6 +187,8 @@ struct ImportView: View {
                 mapping.quantity = index
             } else if header.contains("note") {
                 mapping.notes = index
+            } else if header.contains("drank") || header.contains("drunk") || header.contains("consumed") {
+                drankColumnIndex = index
             }
         }
     }
@@ -183,6 +196,13 @@ struct ImportView: View {
     private func performImport(_ data: CSVData) {
         var count = 0
         for row in data.rows {
+            // Skip wines marked as already consumed
+            if let drankCol = drankColumnIndex {
+                let value = row.value(at: drankCol).lowercased()
+                if value == "true" || value == "yes" || value == "1" {
+                    continue
+                }
+            }
             let wine = mapping.buildWine(from: row)
             modelContext.insert(wine)
             wine.cellar = cellarSelection.selectedCellar
@@ -197,5 +217,6 @@ struct ImportView: View {
     NavigationStack {
         ImportView()
     }
-    .modelContainer(for: Wine.self, inMemory: true)
+    .environment(CellarSelection())
+    .modelContainer(for: [Wine.self, Cellar.self], inMemory: true)
 }
