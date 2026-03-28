@@ -3,7 +3,16 @@ import SwiftData
 
 @main
 struct WineCellarApp: App {
+    let container: ModelContainer
     @State private var cellarSelection = CellarSelection()
+
+    init() {
+        do {
+            container = try ModelContainer(for: Wine.self, DrinkingLog.self, Cellar.self)
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -14,11 +23,10 @@ struct WineCellarApp: App {
                     importSharedCellar(from: url)
                 }
         }
-        .modelContainer(for: [Wine.self, DrinkingLog.self, Cellar.self])
+        .modelContainer(container)
     }
 
     private func migrateIfNeeded() {
-        guard let container = try? ModelContainer(for: Wine.self, DrinkingLog.self, Cellar.self) else { return }
         let context = container.mainContext
 
         // Check if an owned cellar already exists
@@ -54,7 +62,6 @@ struct WineCellarApp: App {
     }
 
     private func importSharedCellar(from url: URL) {
-        guard let container = try? ModelContainer(for: Wine.self, DrinkingLog.self, Cellar.self) else { return }
         let context = container.mainContext
 
         if let cellar = try? CellarShareService.importCellar(from: url, into: context) {
