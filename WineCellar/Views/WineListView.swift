@@ -10,6 +10,9 @@ struct WineListView: View {
     @State private var showingImport = false
     @State private var showingShareSheet = false
     @State private var shareFileURL: URL?
+    @State private var showingNewCellar = false
+    @State private var newCellarName = ""
+    @State private var newCellarOwner = ""
 
     private var wines: [Wine] {
         guard let cellar = cellarSelection.selectedCellar else { return allWines }
@@ -61,6 +64,14 @@ struct WineListView: View {
                         } label: {
                             Label("Share My Cellar", systemImage: "square.and.arrow.up")
                         }
+                        Divider()
+                        Button {
+                            newCellarName = ""
+                            newCellarOwner = ""
+                            showingNewCellar = true
+                        } label: {
+                            Label("Create New Cellar", systemImage: "plus.square.on.square")
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -81,6 +92,16 @@ struct WineListView: View {
             if let url = shareFileURL {
                 ShareSheet(items: [url])
             }
+        }
+        .alert("New Cellar", isPresented: $showingNewCellar) {
+            TextField("Cellar Name", text: $newCellarName)
+            TextField("Owner Name", text: $newCellarOwner)
+            Button("Create") {
+                createCellar()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Create a cellar to import someone else's wines into.")
         }
     }
 
@@ -164,6 +185,17 @@ struct WineListView: View {
         for index in offsets {
             modelContext.delete(filteredWines[index])
         }
+    }
+
+    private func createCellar() {
+        guard !newCellarName.isEmpty else { return }
+        let cellar = Cellar(
+            name: newCellarName,
+            ownerName: newCellarOwner.isEmpty ? newCellarName : newCellarOwner,
+            isOwned: true
+        )
+        modelContext.insert(cellar)
+        cellarSelection.selectedCellar = cellar
     }
 
     private func shareCellar() {
