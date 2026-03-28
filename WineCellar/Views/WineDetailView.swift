@@ -4,6 +4,7 @@ import SwiftData
 struct WineDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(CellarSelection.self) private var cellarSelection
     let wine: Wine
 
     @State private var showingEdit = false
@@ -43,22 +44,26 @@ struct WineDetailView: View {
                 }
             }
 
-            Section {
-                Button("Drink This Wine") {
-                    showingDrinkSheet = true
-                }
-                .foregroundStyle(.orange)
+            if !cellarSelection.isReadOnly {
+                Section {
+                    Button("Drink This Wine") {
+                        showingDrinkSheet = true
+                    }
+                    .foregroundStyle(.orange)
 
-                Button("Delete Wine", role: .destructive) {
-                    showingDeleteConfirm = true
+                    Button("Delete Wine", role: .destructive) {
+                        showingDeleteConfirm = true
+                    }
                 }
             }
         }
         .navigationTitle(wine.name.isEmpty ? wine.variety : wine.name)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") {
-                    showingEdit = true
+            if !cellarSelection.isReadOnly {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Edit") {
+                        showingEdit = true
+                    }
                 }
             }
         }
@@ -107,5 +112,6 @@ struct WineDetailView: View {
             quantity: 2
         ))
     }
-    .modelContainer(for: [Wine.self, DrinkingLog.self], inMemory: true)
+    .environment(CellarSelection())
+    .modelContainer(for: [Wine.self, DrinkingLog.self, Cellar.self], inMemory: true)
 }

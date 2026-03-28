@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct ImportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(CellarSelection.self) private var cellarSelection
 
     @State private var csvData: CSVData?
     @State private var mapping = ColumnMapping()
@@ -184,6 +185,7 @@ struct ImportView: View {
         for row in data.rows {
             let wine = mapping.buildWine(from: row)
             modelContext.insert(wine)
+            wine.cellar = cellarSelection.selectedCellar
             count += 1
         }
         importedCount = count

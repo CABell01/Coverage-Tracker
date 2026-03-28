@@ -3,10 +3,18 @@ import SwiftData
 
 struct WineListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Wine.vintage, order: .reverse) private var wines: [Wine]
+    @Environment(CellarSelection.self) private var cellarSelection
+    @Query(sort: \Wine.vintage, order: .reverse) private var allWines: [Wine]
     @State private var filterState = FilterState()
     @State private var showingAddWine = false
     @State private var showingImport = false
+    @State private var showingShareSheet = false
+    @State private var shareFileURL: URL?
+
+    private var wines: [Wine] {
+        guard let cellar = cellarSelection.selectedCellar else { return allWines }
+        return allWines.filter { $0.cellar?.id == cellar.id }
+    }
 
     private var filteredWines: [Wine] {
         if filterState.isFiltering {
@@ -32,23 +40,30 @@ struct WineListView: View {
             filterBar
             wineList
         }
-        .navigationTitle("Wine Cellar")
+        .navigationTitle(cellarSelection.selectedCellar?.name ?? "Wine Cellar")
         .searchable(text: $filterState.searchText, prompt: "Search wines...")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button {
-                        showingAddWine = true
+            if !cellarSelection.isReadOnly {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button {
+                            showingAddWine = true
+                        } label: {
+                            Label("Add Wine", systemImage: "plus")
+                        }
+                        Button {
+                            showingImport = true
+                        } label: {
+                            Label("Import CSV", systemImage: "square.and.arrow.down")
+                        }
+                        Button {
+                            shareCellar()
+                        } label: {
+                            Label("Share My Cellar", systemImage: "square.and.arrow.up")
+                        }
                     } label: {
-                        Label("Add Wine", systemImage: "plus")
+                        Image(systemName: "plus")
                     }
-                    Button {
-                        showingImport = true
-                    } label: {
-                        Label("Import CSV", systemImage: "square.and.arrow.down")
-                    }
-                } label: {
-                    Image(systemName: "plus")
                 }
             }
         }
@@ -60,6 +75,11 @@ struct WineListView: View {
         .sheet(isPresented: $showingImport) {
             NavigationStack {
                 ImportView()
+            }
+        }
+        .sheet(isPresented: $showingShareSheet) {
+            if let url = shareFileURL {
+                ShareSheet(items: [url])
             }
         }
     }
@@ -119,10 +139,14 @@ struct WineListView: View {
     private var wineList: some View {
         if filteredWines.isEmpty {
             ContentUnavailableView {
-                Label("No Wines", systemImage: "wineglass")
+                Label("No Wines", systemImage: "wine.glass")
             } description: {
                 if wines.isEmpty {
-                    Text("Tap + to add your first bottle.")
+                    if cellarSelection.isReadOnly {
+                        Text("This cellar is empty.")
+                    } else {
+                        Text("Tap + to add your first bottle.")
+                    }
                 } else {
                     Text("No wines match your filters.")
                 }
@@ -134,7 +158,7 @@ struct WineListView: View {
                         WineRowView(wine: wine)
                     }
                 }
-                .onDelete(perform: deleteWines)
+                .onDelete(perform: cellarSelection.isReadOnly ? nil : deleteWines)
             }
             .listStyle(.plain)
         }
@@ -145,6 +169,29 @@ struct WineListView: View {
             modelContext.delete(filteredWines[index])
         }
     }
+
+    private func shareCellar() {
+        guard let cellar = cellarSelection.selectedCellar else { return }
+        do {
+            let url = try CellarShareService.exportCellar(cellar)
+            shareFileURL = url
+            showingShareSheet = true
+        } catch {
+            // Export failed silently for now
+        }
+    }
+}
+
+// MARK: - Share Sheet
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct WineRowView: View {
@@ -199,5 +246,6 @@ struct WineRowView: View {
     NavigationStack {
         WineListView()
     }
-    .modelContainer(for: Wine.self, inMemory: true)
+    .environment(CellarSelection())
+    .modelContainer(for: [Wine.self, Cellar.self], inMemory: true)
 }

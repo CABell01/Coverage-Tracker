@@ -4,6 +4,7 @@ import SwiftData
 struct AddWineView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(CellarSelection.self) private var cellarSelection
 
     var existingWine: Wine?
 
@@ -171,6 +172,7 @@ struct AddWineView: View {
                 quantity: quantity
             )
             modelContext.insert(wine)
+            wine.cellar = cellarSelection.selectedCellar
         }
         dismiss()
     }

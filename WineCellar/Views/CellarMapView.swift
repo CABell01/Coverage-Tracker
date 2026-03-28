@@ -2,12 +2,18 @@ import SwiftUI
 import SwiftData
 
 struct CellarMapView: View {
-    @Query private var wines: [Wine]
+    @Environment(CellarSelection.self) private var cellarSelection
+    @Query private var allWines: [Wine]
 
     @State private var selectedZone: String = ""
     @State private var selectedSlotWines: [Wine] = []
     @State private var showingSlotDetail = false
     @State private var selectedSlotNumber: Int = 0
+
+    private var wines: [Wine] {
+        guard let cellar = cellarSelection.selectedCellar else { return allWines }
+        return allWines.filter { $0.cellar?.id == cellar.id }
+    }
 
     private var zones: [String] {
         Array(Set(wines.map(\.zone).filter { !$0.isEmpty })).sorted()
@@ -46,11 +52,14 @@ struct CellarMapView: View {
                 slotGrid
             }
         }
-        .navigationTitle("Cellar Map")
+        .navigationTitle(cellarSelection.selectedCellar.map { "\($0.name) Map" } ?? "Cellar Map")
         .onAppear {
             if selectedZone.isEmpty, let first = zones.first {
                 selectedZone = first
             }
+        }
+        .onChange(of: cellarSelection.selectedCellar) {
+            selectedZone = zones.first ?? ""
         }
         .sheet(isPresented: $showingSlotDetail) {
             NavigationStack {
@@ -101,12 +110,12 @@ struct CellarMapView: View {
                             Text("#\(slot)")
                                 .font(.caption.bold())
                             if bottles > 0 {
-                                Image(systemName: "wineglass.fill")
+                                Image(systemName: "wine.glass.fill")
                                     .font(.title3)
                                 Text("\(bottles)")
                                     .font(.caption2)
                             } else {
-                                Image(systemName: "wineglass")
+                                Image(systemName: "wine.glass")
                                     .font(.title3)
                                     .foregroundStyle(.secondary)
                                 Text("empty")
@@ -130,7 +139,7 @@ struct CellarMapView: View {
         Group {
             if selectedSlotWines.isEmpty {
                 ContentUnavailableView {
-                    Label("Empty Slot", systemImage: "wineglass")
+                    Label("Empty Slot", systemImage: "wine.glass")
                 } description: {
                     Text("No wines stored in \(selectedZone) slot #\(selectedSlotNumber).")
                 }
@@ -172,5 +181,6 @@ struct CellarMapView: View {
     NavigationStack {
         CellarMapView()
     }
-    .modelContainer(for: Wine.self, inMemory: true)
+    .environment(CellarSelection())
+    .modelContainer(for: [Wine.self, Cellar.self], inMemory: true)
 }
