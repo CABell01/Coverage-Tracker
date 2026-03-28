@@ -135,22 +135,17 @@ struct WineListView: View {
         }
     }
 
+    private var emptyMessage: String {
+        if wines.isEmpty {
+            return cellarSelection.isReadOnly ? "This cellar is empty." : "Tap + to add your first bottle."
+        }
+        return "No wines match your filters."
+    }
+
     @ViewBuilder
     private var wineList: some View {
         if filteredWines.isEmpty {
-            ContentUnavailableView {
-                Label("No Wines", systemImage: "wine.glass")
-            } description: {
-                if wines.isEmpty {
-                    if cellarSelection.isReadOnly {
-                        Text("This cellar is empty.")
-                    } else {
-                        Text("Tap + to add your first bottle.")
-                    }
-                } else {
-                    Text("No wines match your filters.")
-                }
-            }
+            ContentUnavailableView("No Wines", systemImage: "wine.glass", description: Text(emptyMessage))
         } else {
             List {
                 ForEach(filteredWines) { wine in
