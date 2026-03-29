@@ -110,12 +110,12 @@ struct CellarMapView: View {
                             Text("#\(slot)")
                                 .font(.caption.bold())
                             if bottles > 0 {
-                                Image(systemName: "wine.glass.fill")
+                                Image(systemName: "wineglass.fill")
                                     .font(.title3)
                                 Text("\(bottles)")
                                     .font(.caption2)
                             } else {
-                                Image(systemName: "wine.glass")
+                                Image(systemName: "wineglass")
                                     .font(.title3)
                                     .foregroundStyle(.secondary)
                                 Text("empty")
@@ -139,7 +139,7 @@ struct CellarMapView: View {
         Group {
             if selectedSlotWines.isEmpty {
                 ContentUnavailableView {
-                    Label("Empty Slot", systemImage: "wine.glass")
+                    Label("Empty Slot", systemImage: "wineglass")
                 } description: {
                     Text("No wines stored in \(selectedZone) slot #\(selectedSlotNumber).")
                 }

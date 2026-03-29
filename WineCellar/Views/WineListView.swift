@@ -166,7 +166,7 @@ struct WineListView: View {
     @ViewBuilder
     private var wineList: some View {
         if filteredWines.isEmpty {
-            ContentUnavailableView("No Wines", systemImage: "wine.glass", description: Text(emptyMessage))
+            ContentUnavailableView("No Wines", systemImage: "wineglass", description: Text(emptyMessage))
         } else {
             List {
                 ForEach(filteredWines) { wine in

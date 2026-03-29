@@ -19,7 +19,7 @@ struct ContentView: View {
                     WineListView()
                 }
                 .tabItem {
-                    Image(systemName: "wine.glass.fill")
+                    Image(systemName: "wineglass.fill")
                     Text("Wines")
                 }
                 .tag(0)
