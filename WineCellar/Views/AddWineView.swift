@@ -5,8 +5,13 @@ struct AddWineView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(CellarSelection.self) private var cellarSelection
+    @Query private var cellars: [Cellar]
 
     var existingWine: Wine?
+
+    private var selectedCellar: Cellar? {
+        cellars.first(where: { $0.id == cellarSelection.selectedCellarID })
+    }
 
     @State private var name: String = ""
     @State private var producer: String = ""
@@ -178,7 +183,7 @@ struct AddWineView: View {
                 quantity: quantity
             )
             modelContext.insert(wine)
-            wine.cellar = cellarSelection.selectedCellar
+            wine.cellar = selectedCellar
         }
         dismiss()
     }

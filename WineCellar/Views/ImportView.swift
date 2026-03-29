@@ -6,6 +6,7 @@ struct ImportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(CellarSelection.self) private var cellarSelection
+    @Query private var cellars: [Cellar]
 
     @State private var csvData: CSVData?
     @State private var mapping = ColumnMapping()
@@ -14,6 +15,10 @@ struct ImportView: View {
     @State private var showingSuccess = false
     @State private var errorMessage: String?
     @State private var drankColumnIndex: Int?
+
+    private var selectedCellar: Cellar? {
+        cellars.first(where: { $0.id == cellarSelection.selectedCellarID })
+    }
 
     private let wineFields: [(label: String, keyPath: WritableKeyPath<ColumnMapping, Int?>)] = [
         ("Name", \.name),
@@ -211,7 +216,7 @@ struct ImportView: View {
             }
             let wine = mapping.buildWine(from: row)
             modelContext.insert(wine)
-            wine.cellar = cellarSelection.selectedCellar
+            wine.cellar = selectedCellar
             count += 1
         }
         importedCount = count

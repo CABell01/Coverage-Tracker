@@ -29,14 +29,13 @@ struct WineCellarApp: App {
     private func migrateIfNeeded() {
         let context = container.mainContext
 
-        // Check if an owned cellar already exists
-        let ownedDescriptor = FetchDescriptor<Cellar>(
-            predicate: #Predicate { $0.isOwned == true }
-        )
-        let ownedCellars = (try? context.fetch(ownedDescriptor)) ?? []
+        // Fetch all cellars and find owned one
+        let allDescriptor = FetchDescriptor<Cellar>()
+        let allCellars = (try? context.fetch(allDescriptor)) ?? []
+        let ownedCellar = allCellars.first(where: { $0.isOwned })
 
         let myCellar: Cellar
-        if let existing = ownedCellars.first {
+        if let existing = ownedCellar {
             myCellar = existing
         } else {
             myCellar = Cellar(name: "My Cellar", ownerName: "Me", isOwned: true)
@@ -44,11 +43,9 @@ struct WineCellarApp: App {
         }
 
         // Assign any orphaned wines to the owned cellar
-        let orphanDescriptor = FetchDescriptor<Wine>(
-            predicate: #Predicate { $0.cellar == nil }
-        )
-        if let orphans = try? context.fetch(orphanDescriptor) {
-            for wine in orphans {
+        let wineDescriptor = FetchDescriptor<Wine>()
+        if let allWines = try? context.fetch(wineDescriptor) {
+            for wine in allWines where wine.cellar == nil {
                 wine.cellar = myCellar
             }
         }
@@ -56,8 +53,9 @@ struct WineCellarApp: App {
         try? context.save()
 
         // Set the default selection
-        if cellarSelection.selectedCellar == nil {
-            cellarSelection.selectedCellar = myCellar
+        if cellarSelection.selectedCellarID == nil {
+            cellarSelection.selectedCellarID = myCellar.id
+            cellarSelection.selectedCellarIsOwned = myCellar.isOwned
         }
     }
 
@@ -66,7 +64,8 @@ struct WineCellarApp: App {
 
         if let cellar = try? CellarShareService.importCellar(from: url, into: context) {
             try? context.save()
-            cellarSelection.selectedCellar = cellar
+            cellarSelection.selectedCellarID = cellar.id
+            cellarSelection.selectedCellarIsOwned = cellar.isOwned
         }
     }
 }

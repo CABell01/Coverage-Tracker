@@ -4,15 +4,20 @@ import SwiftData
 struct CellarMapView: View {
     @Environment(CellarSelection.self) private var cellarSelection
     @Query private var allWines: [Wine]
+    @Query private var cellars: [Cellar]
 
     @State private var selectedZone: String = ""
     @State private var selectedSlotWines: [Wine] = []
     @State private var showingSlotDetail = false
     @State private var selectedSlotNumber: Int = 0
 
+    private var selectedCellar: Cellar? {
+        cellars.first(where: { $0.id == cellarSelection.selectedCellarID })
+    }
+
     private var wines: [Wine] {
-        guard let cellar = cellarSelection.selectedCellar else { return allWines }
-        return allWines.filter { $0.cellar?.id == cellar.id }
+        guard let id = cellarSelection.selectedCellarID else { return allWines }
+        return allWines.filter { $0.cellar?.id == id }
     }
 
     private var zones: [String] {
@@ -52,13 +57,13 @@ struct CellarMapView: View {
                 slotGrid
             }
         }
-        .navigationTitle(cellarSelection.selectedCellar.map { "\($0.name) Map" } ?? "Cellar Map")
+        .navigationTitle(selectedCellar.map { "\($0.name) Map" } ?? "Cellar Map")
         .onAppear {
             if selectedZone.isEmpty, let first = zones.first {
                 selectedZone = first
             }
         }
-        .onChange(of: cellarSelection.selectedCellar) {
+        .onChange(of: cellarSelection.selectedCellarID) {
             selectedZone = zones.first ?? ""
         }
         .sheet(isPresented: $showingSlotDetail) {
@@ -152,12 +157,14 @@ struct CellarMapView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                         HStack {
-                            Text(wine.variety)
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(Color.accentColor.opacity(0.1))
-                                .clipShape(Capsule())
+                            if !wine.variety.isEmpty {
+                                Text(wine.variety)
+                                    .font(.caption)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background(Color.accentColor.opacity(0.1))
+                                    .clipShape(Capsule())
+                            }
                             Spacer()
                             Text("\(wine.quantity) bottle\(wine.quantity == 1 ? "" : "s")")
                                 .font(.caption)

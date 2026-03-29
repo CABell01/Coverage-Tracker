@@ -7,8 +7,6 @@ struct ContentView: View {
     @State private var selectedTab = 0
 
     var body: some View {
-        @Bindable var selection = cellarSelection
-
         VStack(spacing: 0) {
             if cellars.count > 1 {
                 cellarPicker
@@ -44,8 +42,10 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            if cellarSelection.selectedCellar == nil, let first = cellars.first(where: { $0.isOwned }) ?? cellars.first {
-                cellarSelection.selectedCellar = first
+            if cellarSelection.selectedCellarID == nil,
+               let first = cellars.first(where: { $0.isOwned }) ?? cellars.first {
+                cellarSelection.selectedCellarID = first.id
+                cellarSelection.selectedCellarIsOwned = first.isOwned
             }
         }
     }
@@ -56,7 +56,8 @@ struct ContentView: View {
             HStack(spacing: 8) {
                 ForEach(cellars.sorted { $0.isOwned && !$1.isOwned }) { cellar in
                     Button {
-                        cellarSelection.selectedCellar = cellar
+                        cellarSelection.selectedCellarID = cellar.id
+                        cellarSelection.selectedCellarIsOwned = cellar.isOwned
                     } label: {
                         HStack(spacing: 4) {
                             if !cellar.isOwned {
@@ -68,8 +69,8 @@ struct ContentView: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
-                        .background(cellarSelection.selectedCellar?.id == cellar.id ? Color.accentColor : Color(.systemGray6))
-                        .foregroundStyle(cellarSelection.selectedCellar?.id == cellar.id ? .white : .primary)
+                        .background(cellarSelection.selectedCellarID == cellar.id ? Color.accentColor : Color(.systemGray6))
+                        .foregroundStyle(cellarSelection.selectedCellarID == cellar.id ? .white : .primary)
                         .clipShape(Capsule())
                     }
                 }

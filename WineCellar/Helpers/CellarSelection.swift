@@ -2,10 +2,10 @@ import SwiftUI
 
 @Observable
 class CellarSelection {
-    var selectedCellar: Cellar?
+    var selectedCellarID: UUID?
+    var selectedCellarIsOwned: Bool = true
 
     var isReadOnly: Bool {
-        guard let cellar = selectedCellar else { return false }
-        return !cellar.isOwned
+        selectedCellarID != nil && !selectedCellarIsOwned
     }
 }

@@ -5,6 +5,7 @@ struct WineListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(CellarSelection.self) private var cellarSelection
     @Query(sort: \Wine.vintage, order: .reverse) private var allWines: [Wine]
+    @Query private var cellars: [Cellar]
     @State private var filterState = FilterState()
     @State private var showingAddWine = false
     @State private var showingImport = false
@@ -14,9 +15,13 @@ struct WineListView: View {
     @State private var newCellarName = ""
     @State private var newCellarOwner = ""
 
+    private var selectedCellar: Cellar? {
+        cellars.first(where: { $0.id == cellarSelection.selectedCellarID })
+    }
+
     private var wines: [Wine] {
-        guard let cellar = cellarSelection.selectedCellar else { return allWines }
-        return allWines.filter { $0.cellar?.id == cellar.id }
+        guard let id = cellarSelection.selectedCellarID else { return allWines }
+        return allWines.filter { $0.cellar?.id == id }
     }
 
     private var filteredWines: [Wine] {
@@ -27,15 +32,15 @@ struct WineListView: View {
     }
 
     private var uniqueVarieties: [String] {
-        Array(Set(wines.map(\.variety))).sorted()
+        Array(Set(wines.map(\.variety).filter { !$0.isEmpty })).sorted()
     }
 
     private var uniqueRegions: [String] {
-        Array(Set(wines.map(\.region))).sorted()
+        Array(Set(wines.map(\.region).filter { !$0.isEmpty })).sorted()
     }
 
     private var uniqueProducers: [String] {
-        Array(Set(wines.map(\.producer))).sorted()
+        Array(Set(wines.map(\.producer).filter { !$0.isEmpty })).sorted()
     }
 
     var body: some View {
@@ -43,7 +48,7 @@ struct WineListView: View {
             filterBar
             wineList
         }
-        .navigationTitle(cellarSelection.selectedCellar?.name ?? "Wine Cellar")
+        .navigationTitle(selectedCellar?.name ?? "Wine Cellar")
         .searchable(text: $filterState.searchText, prompt: "Search wines...")
         .toolbar {
             if !cellarSelection.isReadOnly {
@@ -195,11 +200,12 @@ struct WineListView: View {
             isOwned: true
         )
         modelContext.insert(cellar)
-        cellarSelection.selectedCellar = cellar
+        cellarSelection.selectedCellarID = cellar.id
+        cellarSelection.selectedCellarIsOwned = cellar.isOwned
     }
 
     private func shareCellar() {
-        guard let cellar = cellarSelection.selectedCellar else { return }
+        guard let cellar = selectedCellar else { return }
         do {
             let url = try CellarShareService.exportCellar(cellar)
             shareFileURL = url
@@ -247,12 +253,14 @@ struct WineRowView: View {
                 }
             }
             HStack {
-                Text(wine.variety)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.accentColor.opacity(0.1))
-                    .clipShape(Capsule())
+                if !wine.variety.isEmpty {
+                    Text(wine.variety)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor.opacity(0.1))
+                        .clipShape(Capsule())
+                }
                 if !wine.region.isEmpty {
                     Text(wine.region)
                         .font(.caption)
