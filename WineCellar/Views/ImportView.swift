@@ -229,6 +229,10 @@ struct ImportView: View {
                 }
             }
             let wine = mapping.buildWine(from: row)
+            // Skip rows with no meaningful data
+            if wine.name.isEmpty && wine.variety.isEmpty && wine.producer.isEmpty {
+                continue
+            }
             modelContext.insert(wine)
             wine.cellar = selectedCellar
             count += 1

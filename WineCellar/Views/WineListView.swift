@@ -234,7 +234,7 @@ struct WineRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(wine.name.isEmpty ? wine.variety : wine.name)
+                Text(wine.name.isEmpty ? (wine.variety.isEmpty ? wine.producer : wine.variety) : wine.name)
                     .font(.headline)
                 Spacer()
                 Text(String(wine.vintage))
