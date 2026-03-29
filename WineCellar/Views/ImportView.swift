@@ -150,10 +150,24 @@ struct ImportView: View {
                     errorMessage = "The file appears to be empty."
                 } else {
                     csvData = parsed
+                    print("DEBUG CSV: \(parsed.headers.count) headers: \(parsed.headers)")
+                    print("DEBUG CSV: \(parsed.rows.count) rows")
+                    if let firstRow = parsed.rows.first {
+                        print("DEBUG CSV: First row values: \(firstRow.values)")
+                    }
                     autoMapColumns(parsed)
+                    print("DEBUG MAPPING: producer=\(mapping.producer as Any), variety=\(mapping.variety as Any), name=\(mapping.name as Any), region=\(mapping.region as Any), country=\(mapping.country as Any), vintage=\(mapping.vintage as Any), zone=\(mapping.zone as Any), notes=\(mapping.notes as Any)")
+                    print("DEBUG MAPPING: mappedCount=\(mapping.mappedCount), drank=\(drankColumnIndex as Any)")
+                    if let firstRow = parsed.rows.first {
+                        let preview = mapping.buildWine(from: firstRow)
+                        print("DEBUG WINE: name='\(preview.name)' producer='\(preview.producer)' variety='\(preview.variety)' vintage=\(preview.vintage) region='\(preview.region)' country='\(preview.country)' zone='\(preview.zone)'")
+                    }
                     // Auto-import if mapping is confident (3+ fields matched)
                     if mapping.mappedCount >= 3 {
+                        print("DEBUG: Auto-importing \(parsed.rows.count) wines")
                         performImport(parsed)
+                    } else {
+                        print("DEBUG: Not auto-importing, only \(mapping.mappedCount) fields mapped")
                     }
                 }
             } catch {
