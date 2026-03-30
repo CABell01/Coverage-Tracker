@@ -87,8 +87,9 @@ struct CellarMapView: View {
         if winesInZone.isEmpty {
             ContentUnavailableView("No Wines", systemImage: "wineglass", description: Text("No wines in \(selectedZone)."))
         } else {
-            List(winesInZone) { wine in
-                NavigationLink(destination: WineDetailView(wine: wine)) {
+            List {
+                ForEach(winesInZone) { wine in
+                    NavigationLink(destination: WineDetailView(wine: wine)) {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(wine.name.isEmpty ? (wine.variety.isEmpty ? wine.producer : wine.variety) : wine.name)
@@ -120,6 +121,7 @@ struct CellarMapView: View {
                         }
                     }
                     .padding(.vertical, 4)
+                    }
                 }
             }
             .listStyle(.plain)
