@@ -237,11 +237,9 @@ struct WineRowView: View {
                 Text(wine.name.isEmpty ? (wine.variety.isEmpty ? wine.producer : wine.variety) : wine.name)
                     .font(.headline)
                 Spacer()
-                if wine.vintage > 0 {
-                    Text(String(wine.vintage))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                Text(wine.vintage > 0 ? String(wine.vintage) : "No Year")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
             HStack {
                 Text(wine.producer)

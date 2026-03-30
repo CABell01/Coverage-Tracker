@@ -97,13 +97,11 @@ struct CellarMapView: View {
                                 Text(wine.producer)
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
-                                if wine.vintage > 0 {
-                                    Text("·")
-                                        .foregroundStyle(.secondary)
-                                    Text(String(wine.vintage))
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                }
+                                Text("·")
+                                    .foregroundStyle(.secondary)
+                                Text(wine.vintage > 0 ? String(wine.vintage) : "No Year")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
                             if !wine.variety.isEmpty {
                                 Text(wine.variety)
