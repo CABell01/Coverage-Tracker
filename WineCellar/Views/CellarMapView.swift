@@ -135,7 +135,7 @@ struct ZoneWineRow: View {
             if wine.quantity > 1 {
                 Text("\(wine.quantity)")
                     .font(.title3.bold())
-                    .foregroundStyle(.accentColor)
+                    .foregroundStyle(Color.accentColor)
             }
         }
         .padding(.vertical, 4)
