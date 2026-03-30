@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct AddWineView: View {
     @Environment(\.modelContext) private var modelContext
@@ -25,8 +26,11 @@ struct AddWineView: View {
     @State private var slot: Int = 1
     @State private var notes: String = ""
     @State private var quantity: Int = 1
+    @State private var winePhoto: UIImage?
 
     @State private var showingScanner = false
+    @State private var showingPhotoPicker = false
+    @State private var photoPickerItem: PhotosPickerItem?
 
     private var isEditing: Bool { existingWine != nil }
 
@@ -40,21 +44,46 @@ struct AddWineView: View {
 
     var body: some View {
         Form {
-            if !isEditing {
-                Section {
-                    Button {
-                        showingScanner = true
-                    } label: {
-                        Label("Scan Bottle Label", systemImage: "camera")
-                            .frame(maxWidth: .infinity)
+            // Photo section
+            Section {
+                if let photo = winePhoto {
+                    Image(uiImage: photo)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: 180)
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(alignment: .topTrailing) {
+                            Button {
+                                winePhoto = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.white, .black.opacity(0.5))
+                            }
+                            .padding(8)
+                        }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                }
+
+                HStack {
+                    if !isEditing {
+                        Button {
+                            showingScanner = true
+                        } label: {
+                            Label("Scan Label", systemImage: "camera")
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
+
+                    Spacer()
+
+                    PhotosPicker(selection: $photoPickerItem, matching: .images) {
+                        Label(winePhoto == nil ? "Add Photo" : "Change Photo", systemImage: "photo")
+                    }
                 }
             }
 
-            Section("Wine Info") {
+            Section {
                 TextField("Wine Name", text: $name)
                 TextField("Producer / Winery", text: $producer)
 
@@ -85,17 +114,23 @@ struct AddWineView: View {
                         Text(String(year)).tag(year)
                     }
                 }
+            } header: {
+                Label("Wine Info", systemImage: "info.circle")
             }
 
-            Section("Cellar Location") {
+            Section {
                 TextField("Zone (e.g., Left Wall, Back Rack)", text: $zone)
                 Stepper("Slot #\(slot)", value: $slot, in: 1...999)
+            } header: {
+                Label("Cellar Location", systemImage: "mappin")
             }
 
-            Section("Details") {
+            Section {
                 Stepper("Quantity: \(quantity)", value: $quantity, in: 1...99)
                 TextField("Notes", text: $notes, axis: .vertical)
                     .lineLimit(3...6)
+            } header: {
+                Label("Details", systemImage: "note.text")
             }
         }
         .navigationTitle(isEditing ? "Edit Wine" : "Add Wine")
@@ -130,6 +165,9 @@ struct AddWineView: View {
                 slot = wine.slot
                 notes = wine.notes
                 quantity = wine.quantity
+                if let data = wine.photoData {
+                    winePhoto = UIImage(data: data)
+                }
             }
         }
         .sheet(isPresented: $showingScanner) {
@@ -153,11 +191,39 @@ struct AddWineView: View {
                     }
                 }
                 if let v = scannedData.vintage { vintage = v }
+                if let img = scannedData.image { winePhoto = img }
+            }
+        }
+        .onChange(of: photoPickerItem) {
+            Task {
+                if let data = try? await photoPickerItem?.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    winePhoto = image
+                }
             }
         }
     }
 
+    private func resizedImageData(_ image: UIImage) -> Data? {
+        let maxDimension: CGFloat = 800
+        let size = image.size
+        let scale: CGFloat
+        if size.width > maxDimension || size.height > maxDimension {
+            scale = maxDimension / max(size.width, size.height)
+        } else {
+            scale = 1.0
+        }
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        let resized = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+        return resized.jpegData(compressionQuality: 0.7)
+    }
+
     private func save() {
+        let photoBytes = winePhoto.flatMap { resizedImageData($0) }
+
         if let wine = existingWine {
             wine.name = name
             wine.producer = producer
@@ -169,6 +235,7 @@ struct AddWineView: View {
             wine.slot = slot
             wine.notes = notes
             wine.quantity = quantity
+            wine.photoData = photoBytes
         } else {
             let wine = Wine(
                 name: name,
@@ -180,7 +247,8 @@ struct AddWineView: View {
                 zone: zone,
                 slot: slot,
                 notes: notes,
-                quantity: quantity
+                quantity: quantity,
+                photoData: photoBytes
             )
             modelContext.insert(wine)
             wine.cellar = selectedCellar

@@ -29,6 +29,7 @@ struct WineInfo: Codable {
     var notes: String
     var dateAdded: Date
     var quantity: Int
+    var photoBase64: String?
 }
 
 // MARK: - UTType
@@ -63,7 +64,8 @@ enum CellarShareService {
                 slot: wine.slot,
                 notes: wine.notes,
                 dateAdded: wine.dateAdded,
-                quantity: wine.quantity
+                quantity: wine.quantity,
+                photoBase64: wine.photoData?.base64EncodedString()
             )
         }
 
@@ -125,6 +127,7 @@ enum CellarShareService {
 
         // Add wines
         for wineInfo in export.wines {
+            let photoData = wineInfo.photoBase64.flatMap { Data(base64Encoded: $0) }
             let wine = Wine(
                 name: wineInfo.name,
                 producer: wineInfo.producer,
@@ -136,7 +139,8 @@ enum CellarShareService {
                 slot: wineInfo.slot,
                 notes: wineInfo.notes,
                 dateAdded: wineInfo.dateAdded,
-                quantity: wineInfo.quantity
+                quantity: wineInfo.quantity,
+                photoData: photoData
             )
             wine.cellar = cellar
             context.insert(wine)

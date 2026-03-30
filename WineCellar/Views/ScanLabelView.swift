@@ -9,6 +9,7 @@ struct ScanLabelView: View {
     @State private var showingCamera = true
     @State private var isProcessing = false
     @State private var scannedData: ScannedWineData?
+    @State private var capturedImage: UIImage?
 
     private let scanner = LabelScannerService()
 
@@ -38,6 +39,7 @@ struct ScanLabelView: View {
             }
             .sheet(isPresented: $showingCamera) {
                 ImagePicker { image in
+                    capturedImage = image
                     processImage(image)
                 }
             }
@@ -47,6 +49,18 @@ struct ScanLabelView: View {
     @ViewBuilder
     private func scanResultView(_ data: ScannedWineData) -> some View {
         List {
+            if let img = capturedImage {
+                Section {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxHeight: 200)
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                }
+            }
+
             Section("Detected Info") {
                 resultRow("Producer", value: data.producer)
                 resultRow("Wine Name", value: data.name)
@@ -57,7 +71,9 @@ struct ScanLabelView: View {
 
             Section {
                 Button("Use These Results") {
-                    onScan(data)
+                    var result = data
+                    result.image = capturedImage
+                    onScan(result)
                     dismiss()
                 }
                 .frame(maxWidth: .infinity)
@@ -65,6 +81,7 @@ struct ScanLabelView: View {
 
                 Button("Retake Photo") {
                     scannedData = nil
+                    capturedImage = nil
                     showingCamera = true
                 }
                 .frame(maxWidth: .infinity)

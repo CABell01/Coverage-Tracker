@@ -14,6 +14,7 @@ final class Wine {
     var notes: String
     var dateAdded: Date
     var quantity: Int
+    @Attribute(.externalStorage) var photoData: Data?
     var cellar: Cellar?
 
     init(
@@ -27,7 +28,8 @@ final class Wine {
         slot: Int = 1,
         notes: String = "",
         dateAdded: Date = .now,
-        quantity: Int = 1
+        quantity: Int = 1,
+        photoData: Data? = nil
     ) {
         self.name = name
         self.producer = producer
@@ -40,5 +42,6 @@ final class Wine {
         self.notes = notes
         self.dateAdded = dateAdded
         self.quantity = quantity
+        self.photoData = photoData
     }
 }

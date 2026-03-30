@@ -232,45 +232,49 @@ struct WineRowView: View {
     let wine: Wine
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(wine.name.isEmpty ? (wine.variety.isEmpty ? wine.producer : wine.variety) : wine.name)
-                    .font(.headline)
-                Spacer()
-                Text(wine.vintage > 0 ? String(wine.vintage) : "No Year")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            HStack {
-                Text(wine.producer)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                if !wine.zone.isEmpty {
-                    Label(wine.zone, systemImage: "mappin")
-                        .font(.caption)
+        HStack(spacing: 12) {
+            WineThumbnail(photoData: wine.photoData, size: 44)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(wine.name.isEmpty ? (wine.variety.isEmpty ? wine.producer : wine.variety) : wine.name)
+                        .font(.headline)
+                    Spacer()
+                    Text(wine.vintage > 0 ? String(wine.vintage) : "No Year")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-            }
-            HStack {
-                if !wine.variety.isEmpty {
-                    Text(wine.variety)
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.accentColor.opacity(0.1))
-                        .clipShape(Capsule())
-                }
-                if !wine.region.isEmpty {
-                    Text(wine.region)
-                        .font(.caption)
+                HStack {
+                    Text(wine.producer)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
+                    Spacer()
+                    if !wine.zone.isEmpty {
+                        Label(wine.zone, systemImage: "mappin")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                Spacer()
-                if wine.quantity > 1 {
-                    Text("\(wine.quantity) bottles")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                HStack {
+                    if !wine.variety.isEmpty {
+                        Text(wine.variety)
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.accentColor.opacity(0.1))
+                            .clipShape(Capsule())
+                    }
+                    if !wine.region.isEmpty {
+                        Text(wine.region)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if wine.quantity > 1 {
+                        Text("\(wine.quantity) bottles")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }

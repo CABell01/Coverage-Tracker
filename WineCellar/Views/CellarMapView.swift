@@ -109,6 +109,8 @@ struct ZoneWineRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            WineThumbnail(photoData: wine.photoData, size: 44)
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(displayName)
                     .font(.headline)

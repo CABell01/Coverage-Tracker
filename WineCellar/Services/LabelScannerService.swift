@@ -7,6 +7,7 @@ struct ScannedWineData {
     var variety: String?
     var region: String?
     var vintage: Int?
+    var image: UIImage?
 }
 
 class LabelScannerService {
