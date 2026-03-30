@@ -237,9 +237,11 @@ struct WineRowView: View {
                 Text(wine.name.isEmpty ? (wine.variety.isEmpty ? wine.producer : wine.variety) : wine.name)
                     .font(.headline)
                 Spacer()
-                Text(String(wine.vintage))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                if wine.vintage > 0 {
+                    Text(String(wine.vintage))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
             HStack {
                 Text(wine.producer)
@@ -247,7 +249,7 @@ struct WineRowView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 if !wine.zone.isEmpty {
-                    Label("\(wine.zone) #\(wine.slot)", systemImage: "mappin")
+                    Label(wine.zone, systemImage: "mappin")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

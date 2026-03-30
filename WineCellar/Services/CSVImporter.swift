@@ -76,7 +76,7 @@ struct ColumnMapping {
             variety: variety.map { row.value(at: $0) } ?? "",
             region: region.map { row.value(at: $0) } ?? "",
             country: country.map { row.value(at: $0) } ?? "",
-            vintage: vintage.flatMap { Int(row.value(at: $0)) } ?? Calendar.current.component(.year, from: Date()),
+            vintage: vintage.flatMap { Int(row.value(at: $0)) } ?? 0,
             zone: zone.map { row.value(at: $0) } ?? "",
             slot: slot.flatMap { Int(row.value(at: $0)) } ?? 1,
             notes: notes.map { row.value(at: $0) } ?? "",

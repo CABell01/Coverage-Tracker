@@ -21,7 +21,9 @@ struct WineDetailView: View {
                 if !wine.country.isEmpty {
                     detailRow("Country", value: wine.country)
                 }
-                detailRow("Vintage", value: String(wine.vintage))
+                if wine.vintage > 0 {
+                    detailRow("Vintage", value: String(wine.vintage))
+                }
             }
 
             Section("Cellar Location") {
@@ -30,7 +32,6 @@ struct WineDetailView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     detailRow("Zone", value: wine.zone)
-                    detailRow("Slot", value: "#\(wine.slot)")
                 }
             }
 
