@@ -88,44 +88,62 @@ struct CellarMapView: View {
             ContentUnavailableView("No Wines", systemImage: "wineglass", description: Text("No wines in \(selectedZone)."))
         } else {
             List {
-                ForEach(winesInZone) { wine in
+                ForEach(winesInZone, id: \.id) { wine in
                     NavigationLink(destination: WineDetailView(wine: wine)) {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(wine.name.isEmpty ? (wine.variety.isEmpty ? wine.producer : wine.variety) : wine.name)
-                                .font(.headline)
-                            HStack {
-                                Text(wine.producer)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                Text("·")
-                                    .foregroundStyle(.secondary)
-                                Text(wine.vintage > 0 ? String(wine.vintage) : "No Year")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            if !wine.variety.isEmpty {
-                                Text(wine.variety)
-                                    .font(.caption)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 2)
-                                    .background(Color.accentColor.opacity(0.1))
-                                    .clipShape(Capsule())
-                            }
-                        }
-                        Spacer()
-                        if wine.quantity > 1 {
-                            Text("\(wine.quantity)")
-                                .font(.title3.bold())
-                                .foregroundStyle(.accentColor)
-                        }
-                    }
-                    .padding(.vertical, 4)
+                        ZoneWineRow(wine: wine)
                     }
                 }
             }
             .listStyle(.plain)
         }
+    }
+}
+
+struct ZoneWineRow: View {
+    let wine: Wine
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(displayName)
+                    .font(.headline)
+                HStack {
+                    Text(wine.producer)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text("·")
+                        .foregroundStyle(.secondary)
+                    Text(vintageText)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                if !wine.variety.isEmpty {
+                    Text(wine.variety)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor.opacity(0.1))
+                        .clipShape(Capsule())
+                }
+            }
+            Spacer()
+            if wine.quantity > 1 {
+                Text("\(wine.quantity)")
+                    .font(.title3.bold())
+                    .foregroundStyle(.accentColor)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var displayName: String {
+        if !wine.name.isEmpty { return wine.name }
+        if !wine.variety.isEmpty { return wine.variety }
+        return wine.producer
+    }
+
+    private var vintageText: String {
+        wine.vintage > 0 ? String(wine.vintage) : "No Year"
     }
 }
 
