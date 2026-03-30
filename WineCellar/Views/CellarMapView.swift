@@ -87,14 +87,19 @@ struct CellarMapView: View {
         if winesInZone.isEmpty {
             ContentUnavailableView("No Wines", systemImage: "wineglass", description: Text("No wines in \(selectedZone)."))
         } else {
-            List {
-                ForEach(winesInZone, id: \.id) { wine in
-                    NavigationLink(destination: WineDetailView(wine: wine)) {
-                        ZoneWineRow(wine: wine)
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(winesInZone, id: \.id) { wine in
+                        NavigationLink(destination: WineDetailView(wine: wine)) {
+                            ZoneWineRow(wine: wine)
+                                .padding(.horizontal)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+                        Divider()
                     }
                 }
             }
-            .listStyle(.plain)
         }
     }
 }
