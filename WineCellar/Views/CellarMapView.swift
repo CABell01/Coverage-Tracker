@@ -3,13 +3,10 @@ import SwiftData
 
 struct CellarMapView: View {
     @Environment(CellarSelection.self) private var cellarSelection
-    @Query private var allWines: [Wine]
+    @Query(sort: \Wine.variety) private var allWines: [Wine]
     @Query private var cellars: [Cellar]
 
     @State private var selectedZone: String = ""
-    @State private var selectedSlotWines: [Wine] = []
-    @State private var showingSlotDetail = false
-    @State private var selectedSlotNumber: Int = 0
 
     private var selectedCellar: Cellar? {
         cellars.first(where: { $0.id == cellarSelection.selectedCellarID })
@@ -28,33 +25,17 @@ struct CellarMapView: View {
         wines.filter { $0.zone == selectedZone }
     }
 
-    private var maxSlot: Int {
-        winesInZone.map(\.slot).max() ?? 12
-    }
-
-    private var slotCount: Int {
-        max(maxSlot, 12)
-    }
-
-    private func winesAt(slot: Int) -> [Wine] {
-        winesInZone.filter { $0.slot == slot }
-    }
-
-    private func totalBottlesAt(slot: Int) -> Int {
-        winesAt(slot: slot).reduce(0) { $0 + $1.quantity }
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             if zones.isEmpty {
                 ContentUnavailableView {
-                    Label("No Cellar Zones", systemImage: "square.grid.3x3")
+                    Label("No Locations", systemImage: "square.grid.3x3")
                 } description: {
-                    Text("Add wines with a cellar zone to see them on the map.")
+                    Text("Add wines with a location to see them here.")
                 }
             } else {
                 zonePicker
-                slotGrid
+                zoneWineList
             }
         }
         .navigationTitle(selectedCellar.map { "\($0.name) Map" } ?? "Cellar Map")
@@ -66,12 +47,6 @@ struct CellarMapView: View {
         .onChange(of: cellarSelection.selectedCellarID) {
             selectedZone = zones.first ?? ""
         }
-        .sheet(isPresented: $showingSlotDetail) {
-            NavigationStack {
-                slotDetailView
-            }
-            .presentationDetents([.medium])
-        }
     }
 
     @ViewBuilder
@@ -79,16 +54,25 @@ struct CellarMapView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(zones, id: \.self) { zone in
+                    let count = wines.filter { $0.zone == zone }.count
                     Button {
                         selectedZone = zone
                     } label: {
-                        Text(zone)
-                            .font(.subheadline)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(selectedZone == zone ? Color.accentColor : Color(.systemGray6))
-                            .foregroundStyle(selectedZone == zone ? .white : .primary)
-                            .clipShape(Capsule())
+                        HStack(spacing: 4) {
+                            Text(zone)
+                                .font(.subheadline)
+                            Text("\(count)")
+                                .font(.caption2)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(selectedZone == zone ? Color.white.opacity(0.3) : Color.accentColor.opacity(0.15))
+                                .clipShape(Capsule())
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(selectedZone == zone ? Color.accentColor : Color(.systemGray6))
+                        .foregroundStyle(selectedZone == zone ? .white : .primary)
+                        .clipShape(Capsule())
                     }
                 }
             }
@@ -99,64 +83,28 @@ struct CellarMapView: View {
     }
 
     @ViewBuilder
-    private var slotGrid: some View {
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
-
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(1...slotCount, id: \.self) { slot in
-                    let bottles = totalBottlesAt(slot: slot)
-                    Button {
-                        selectedSlotNumber = slot
-                        selectedSlotWines = winesAt(slot: slot)
-                        showingSlotDetail = true
-                    } label: {
-                        VStack(spacing: 4) {
-                            Text("#\(slot)")
-                                .font(.caption.bold())
-                            if bottles > 0 {
-                                Image(systemName: "wineglass.fill")
-                                    .font(.title3)
-                                Text("\(bottles)")
-                                    .font(.caption2)
-                            } else {
-                                Image(systemName: "wineglass")
-                                    .font(.title3)
+    private var zoneWineList: some View {
+        if winesInZone.isEmpty {
+            ContentUnavailableView("No Wines", systemImage: "wineglass", description: Text("No wines in \(selectedZone)."))
+        } else {
+            List(winesInZone) { wine in
+                NavigationLink(destination: WineDetailView(wine: wine)) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(wine.name.isEmpty ? (wine.variety.isEmpty ? wine.producer : wine.variety) : wine.name)
+                                .font(.headline)
+                            HStack {
+                                Text(wine.producer)
+                                    .font(.subheadline)
                                     .foregroundStyle(.secondary)
-                                Text("empty")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
+                                if wine.vintage > 0 {
+                                    Text("·")
+                                        .foregroundStyle(.secondary)
+                                    Text(String(wine.vintage))
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 80)
-                        .background(bottles > 0 ? Color.accentColor.opacity(0.15) : Color(.systemGray6))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding()
-        }
-    }
-
-    @ViewBuilder
-    private var slotDetailView: some View {
-        Group {
-            if selectedSlotWines.isEmpty {
-                ContentUnavailableView {
-                    Label("Empty Slot", systemImage: "wineglass")
-                } description: {
-                    Text("No wines stored in \(selectedZone) slot #\(selectedSlotNumber).")
-                }
-            } else {
-                List(selectedSlotWines) { wine in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(wine.name.isEmpty ? wine.variety : wine.name)
-                            .font(.headline)
-                        Text("\(wine.producer) \(String(wine.vintage))")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        HStack {
                             if !wine.variety.isEmpty {
                                 Text(wine.variety)
                                     .font(.caption)
@@ -165,21 +113,18 @@ struct CellarMapView: View {
                                     .background(Color.accentColor.opacity(0.1))
                                     .clipShape(Capsule())
                             }
-                            Spacer()
-                            Text("\(wine.quantity) bottle\(wine.quantity == 1 ? "" : "s")")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if wine.quantity > 1 {
+                            Text("\(wine.quantity)")
+                                .font(.title3.bold())
+                                .foregroundStyle(.accentColor)
                         }
                     }
+                    .padding(.vertical, 4)
                 }
-                .listStyle(.plain)
             }
-        }
-        .navigationTitle("\(selectedZone) — Slot #\(selectedSlotNumber)")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { showingSlotDetail = false }
-            }
+            .listStyle(.plain)
         }
     }
 }
