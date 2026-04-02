@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation'
 import { parseCSV } from '@/app/lib/csv/csvImporter'
 import { useAddWine } from '@/app/lib/hooks/useWines'
 import { useCellarSelection } from '@/app/lib/hooks/useCellarSelection'
+import { useEnsureCellar } from '@/app/lib/hooks/useEnsureCellar'
+import { CellarPicker } from '@/app/components/layout/CellarPicker'
 
 export default function ImportPage() {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
+  useEnsureCellar()
   const { selectedCellarId } = useCellarSelection()
   const addWine = useAddWine()
 
@@ -70,6 +73,8 @@ export default function ImportPage() {
         </button>
         <h1 className="text-xl font-bold text-gray-900">Import CSV</h1>
       </div>
+
+      <CellarPicker />
 
       <div className="px-4 space-y-4">
         {error && (
