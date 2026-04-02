@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useWine, useDeleteWine } from '@/app/lib/hooks/useWines'
+import { useCellarSelection } from '@/app/lib/hooks/useCellarSelection'
 import { getPhotoUrl } from '@/app/lib/photos/photoUtils'
 import { DrinkWineSheet } from '@/app/components/wine/DrinkWineSheet'
 import { StarRating } from '@/app/components/ui/StarRating'
@@ -13,6 +14,7 @@ export default function WineDetailPage() {
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
   const { data: wine, isLoading } = useWine(id)
+  const { isReadOnly } = useCellarSelection()
   const deleteWine = useDeleteWine()
 
   const [drinkOpen, setDrinkOpen] = useState(false)
@@ -66,14 +68,16 @@ export default function WineDetailPage() {
         </button>
 
         {/* Edit button */}
-        <Link
-          href={`/wines/${wine.id}/edit`}
-          className="absolute top-12 right-4 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </Link>
+        {!isReadOnly && (
+          <Link
+            href={`/wines/${wine.id}/edit`}
+            className="absolute top-12 right-4 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </Link>
+        )}
 
         {/* Title */}
         <div className="absolute bottom-4 left-4 right-4 text-white">
@@ -103,38 +107,42 @@ export default function WineDetailPage() {
         )}
 
         {/* Actions */}
-        <button
-          onClick={() => setDrinkOpen(true)}
-          className="w-full py-3 rounded-xl bg-[#7B2D42] text-white font-medium flex items-center justify-center gap-2"
-        >
-          <span>🥂</span> Log a Drink
-        </button>
+        {!isReadOnly && (
+          <>
+            <button
+              onClick={() => setDrinkOpen(true)}
+              className="w-full py-3 rounded-xl bg-[#7B2D42] text-white font-medium flex items-center justify-center gap-2"
+            >
+              <span>🥂</span> Log a Drink
+            </button>
 
-        {!confirmDelete ? (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="w-full py-3 rounded-xl border border-red-200 text-red-500 font-medium text-sm"
-          >
-            Delete Wine
-          </button>
-        ) : (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-2">
-            <p className="text-sm text-red-700 text-center">Are you sure? This can't be undone.</p>
-            <div className="flex gap-2">
+            {!confirmDelete ? (
               <button
-                onClick={() => setConfirmDelete(false)}
-                className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm"
+                onClick={() => setConfirmDelete(true)}
+                className="w-full py-3 rounded-xl border border-red-200 text-red-500 font-medium text-sm"
               >
-                Cancel
+                Delete Wine
               </button>
-              <button
-                onClick={handleDelete}
-                className="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm font-medium"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
+            ) : (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-2">
+                <p className="text-sm text-red-700 text-center">Are you sure? This can't be undone.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm font-medium"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

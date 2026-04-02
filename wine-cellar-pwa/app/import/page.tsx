@@ -17,20 +17,32 @@ export default function ImportPage() {
   const [csvContent, setCsvContent] = useState('')
   const [imported, setImported] = useState(0)
   const [error, setError] = useState('')
+  const [failures, setFailures] = useState<string[]>([])
 
   async function handleFile(file: File) {
+    if (!selectedCellarId) {
+      setError('Please select a cellar first before importing wines.')
+      return
+    }
     const text = await file.text()
     setCsvContent(text)
-    const result = parseCSV(text, selectedCellarId ?? '')
-    setPreview(result)
-    setState('preview')
+    try {
+      const result = parseCSV(text, selectedCellarId)
+      setPreview(result)
+      setError('')
+      setState('preview')
+    } catch (e: any) {
+      setError(e.message || 'Failed to parse CSV file.')
+    }
   }
 
   async function handleImport() {
     if (!preview || !selectedCellarId) return
     setState('importing')
     setError('')
+    setFailures([])
     let count = 0
+    const failed: string[] = []
 
     for (const wine of preview.wines) {
       try {
@@ -38,10 +50,13 @@ export default function ImportPage() {
         count++
         setImported(count)
       } catch (e: any) {
-        console.error('Failed to import wine', wine.name, e)
+        const label = wine.name || wine.variety || 'Unknown wine'
+        failed.push(label)
+        console.error('Failed to import wine', label, e)
       }
     }
 
+    setFailures(failed)
     setState('done')
   }
 
@@ -57,6 +72,18 @@ export default function ImportPage() {
       </div>
 
       <div className="px-4 space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+
+        {!selectedCellarId && state === 'idle' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+            <p className="text-sm text-amber-800">No cellar selected. Please go back and select or create a cellar first.</p>
+          </div>
+        )}
+
         {state === 'idle' && (
           <>
             <div
@@ -157,6 +184,12 @@ export default function ImportPage() {
             <div className="text-center">
               <p className="text-lg font-semibold text-gray-900">Import Complete!</p>
               <p className="text-gray-500 mt-1">{imported} wines added to your cellar</p>
+              {failures.length > 0 && (
+                <p className="text-red-500 text-sm mt-1">
+                  {failures.length} failed: {failures.slice(0, 3).join(', ')}
+                  {failures.length > 3 && ` and ${failures.length - 3} more`}
+                </p>
+              )}
             </div>
             <button
               onClick={() => router.replace('/wines')}

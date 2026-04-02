@@ -17,7 +17,7 @@ import { useEnsureCellar } from '@/app/lib/hooks/useEnsureCellar'
 export default function WinesPage() {
   const router = useRouter()
   useEnsureCellar()
-  const { selectedCellarId } = useCellarSelection()
+  const { selectedCellarId, isReadOnly } = useCellarSelection()
   const { data: wines = [], isLoading } = useWines(selectedCellarId)
   useRealtimeWines(selectedCellarId)
   useRealtimeCellars()
@@ -49,7 +49,7 @@ export default function WinesPage() {
     <div className="min-h-full">
       {/* Header */}
       <div className="px-4 pt-12 pb-2 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">My Wines</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{isReadOnly ? 'Wines' : 'My Wines'}</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={async () => {
@@ -65,24 +65,28 @@ export default function WinesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           </button>
-          <Link
-            href="/import"
-            className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500"
-            title="Import CSV"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-          </Link>
-          <Link
-            href="/wines/add"
-            className="w-9 h-9 rounded-full bg-[#7B2D42] flex items-center justify-center text-white shadow-sm"
-            title="Add wine"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </Link>
+          {!isReadOnly && (
+            <>
+              <Link
+                href="/import"
+                className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500"
+                title="Import CSV"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </Link>
+              <Link
+                href="/wines/add"
+                className="w-9 h-9 rounded-full bg-[#7B2D42] flex items-center justify-center text-white shadow-sm"
+                title="Add wine"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -108,7 +112,7 @@ export default function WinesPage() {
             title={wines.length === 0 ? 'No wines yet' : 'No results'}
             message={wines.length === 0 ? 'Add your first bottle to get started.' : 'Try adjusting your search or filter.'}
             action={
-              wines.length === 0 ? (
+              wines.length === 0 && !isReadOnly ? (
                 <Link
                   href="/wines/add"
                   className="px-5 py-2 bg-[#7B2D42] text-white rounded-full text-sm font-medium"
