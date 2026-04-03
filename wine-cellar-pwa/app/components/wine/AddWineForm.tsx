@@ -11,7 +11,7 @@ type WineFormData = Omit<Wine, 'id' | 'date_added'>
 interface AddWineFormProps {
   initial?: Partial<WineFormData>
   wineId?: string
-  onSubmit: (data: WineFormData) => Promise<void>
+  onSubmit: (data: WineFormData, pendingPhoto?: File) => Promise<void>
   submitLabel?: string
 }
 
@@ -36,7 +36,10 @@ export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }:
     photo_path: initial?.photo_path ?? null,
   })
 
+  const [pendingPhoto, setPendingPhoto] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [scanning, setScanning] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -44,15 +47,70 @@ export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }:
     setForm(f => ({ ...f, [key]: value }))
 
   async function handlePhoto(file: File) {
-    if (!wineId) return
-    setUploading(true)
+    // Show preview immediately
+    const previewUrl = URL.createObjectURL(file)
+    setPhotoPreview(previewUrl)
+
+    // If we have a wineId (editing), upload immediately
+    if (wineId) {
+      setUploading(true)
+      try {
+        const path = await uploadWinePhoto(file, wineId)
+        set('photo_path', path)
+      } catch (e) {
+        setError('Photo upload failed')
+      } finally {
+        setUploading(false)
+      }
+    } else {
+      // For new wines, store file to upload after creation
+      setPendingPhoto(file)
+    }
+
+    // Run OCR to auto-fill fields
+    setScanning(true)
     try {
-      const path = await uploadWinePhoto(file, wineId)
-      set('photo_path', path)
+      const { createWorker } = await import('tesseract.js')
+      const worker = await createWorker('eng')
+      const { data: { text } } = await worker.recognize(previewUrl)
+      await worker.terminate()
+
+      if (text.trim()) {
+        autoFillFromOCR(text)
+      }
     } catch (e) {
-      setError('Photo upload failed')
+      // OCR failed silently — user can still fill manually
     } finally {
-      setUploading(false)
+      setScanning(false)
+    }
+  }
+
+  function autoFillFromOCR(text: string) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+    const fullText = text.toLowerCase()
+
+    // Try to match variety
+    if (!form.variety) {
+      const matchedVariety = VARIETIES.find(v => fullText.includes(v.toLowerCase()))
+      if (matchedVariety) set('variety', matchedVariety)
+    }
+
+    // Try to match region
+    if (!form.region) {
+      const matchedRegion = REGIONS.find(r => fullText.includes(r.toLowerCase()))
+      if (matchedRegion) set('region', matchedRegion)
+    }
+
+    // Try to find vintage year
+    if (!form.vintage) {
+      const yearMatch = text.match(/\b(19[5-9]\d|20[0-2]\d)\b/)
+      if (yearMatch) set('vintage', parseInt(yearMatch[1]))
+    }
+
+    // Use first substantial line as wine name if empty
+    if (!form.name && lines.length > 0) {
+      const nameLine = lines.find(l => l.length > 2 && l.length < 60)
+      if (nameLine) set('name', nameLine)
     }
   }
 
@@ -61,7 +119,7 @@ export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }:
     setSaving(true)
     setError('')
     try {
-      await onSubmit(form)
+      await onSubmit(form, pendingPhoto ?? undefined)
     } catch (e: any) {
       setError(e.message ?? 'Something went wrong')
     } finally {
@@ -84,10 +142,14 @@ export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }:
           onClick={() => fileRef.current?.click()}
           className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-[#7B2D42] transition-colors overflow-hidden"
         >
-          {form.photo_path ? (
-            <span className="text-xs text-green-600">✓ Photo</span>
-          ) : uploading ? (
-            <span className="text-xs">Uploading...</span>
+          {photoPreview || form.photo_path ? (
+            <img
+              src={photoPreview ?? ''}
+              alt="Wine photo"
+              className="w-full h-full object-cover"
+            />
+          ) : uploading || scanning ? (
+            <span className="text-xs">{scanning ? 'Reading label...' : 'Uploading...'}</span>
           ) : (
             <>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,6 +169,9 @@ export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }:
           onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0])}
         />
       </div>
+      {scanning && (
+        <p className="text-center text-xs text-gray-400">Reading label to auto-fill fields...</p>
+      )}
 
       <Field label="Wine Name">
         <input
@@ -127,10 +192,16 @@ export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }:
       </Field>
 
       <Field label="Variety">
-        <select value={form.variety} onChange={e => set('variety', e.target.value)} className="input">
-          <option value="">Select variety...</option>
-          {VARIETIES.map(v => <option key={v} value={v}>{v}</option>)}
-        </select>
+        <input
+          value={form.variety}
+          onChange={e => set('variety', e.target.value)}
+          list="varieties-list"
+          placeholder="e.g. Cabernet Sauvignon"
+          className="input"
+        />
+        <datalist id="varieties-list">
+          {VARIETIES.map(v => <option key={v} value={v} />)}
+        </datalist>
       </Field>
 
       <div className="grid grid-cols-2 gap-3">

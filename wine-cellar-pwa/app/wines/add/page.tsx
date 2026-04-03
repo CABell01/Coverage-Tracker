@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { AddWineForm } from '@/app/components/wine/AddWineForm'
-import { useAddWine } from '@/app/lib/hooks/useWines'
+import { useAddWine, useUpdateWine } from '@/app/lib/hooks/useWines'
 import { useCellarSelection } from '@/app/lib/hooks/useCellarSelection'
+import { uploadWinePhoto } from '@/app/lib/photos/photoUtils'
 import type { Wine } from '@/app/types'
 
 type WineFormData = Omit<Wine, 'id' | 'date_added'>
@@ -12,12 +13,25 @@ export default function AddWinePage() {
   const router = useRouter()
   const { selectedCellarId } = useCellarSelection()
   const addWine = useAddWine()
+  const updateWine = useUpdateWine()
 
-  async function handleSubmit(data: WineFormData) {
+  async function handleSubmit(data: WineFormData, pendingPhoto?: File) {
     const wine = await addWine.mutateAsync({
       ...data,
       cellar_id: selectedCellarId ?? data.cellar_id,
     })
+
+    // Upload photo now that we have a wine ID
+    if (pendingPhoto) {
+      try {
+        const path = await uploadWinePhoto(pendingPhoto, wine.id)
+        await updateWine.mutateAsync({ id: wine.id, photo_path: path })
+      } catch (e) {
+        // Wine was saved, photo failed — not critical
+        console.error('Photo upload failed', e)
+      }
+    }
+
     router.replace(`/wines/${wine.id}`)
   }
 
