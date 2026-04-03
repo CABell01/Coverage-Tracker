@@ -89,7 +89,7 @@ export default function WineDetailPage() {
       </div>
 
       {/* Info cards */}
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 py-4 pb-nav space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <InfoCard label="Variety" value={wine.variety || '—'} />
           <InfoCard label="Vintage" value={wine.vintage > 0 ? String(wine.vintage) : 'No Year'} />

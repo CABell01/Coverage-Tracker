@@ -100,7 +100,7 @@ export default function WinesPage() {
         filterOptions={varieties}
       />
 
-      <div className="px-4 pb-4 space-y-2">
+      <div className="px-4 pb-nav space-y-2">
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(6)].map((_, i) => (

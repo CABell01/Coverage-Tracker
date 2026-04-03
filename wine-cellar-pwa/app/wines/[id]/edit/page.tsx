@@ -39,7 +39,7 @@ export default function EditWinePage() {
         <h1 className="text-xl font-bold text-gray-900">Edit Wine</h1>
       </div>
 
-      <div className="px-4 pb-8">
+      <div className="px-4 pb-nav">
         <AddWineForm
           initial={wine}
           wineId={wine.id}

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Modal } from '@/app/components/ui/Modal'
 import { StarRating } from '@/app/components/ui/StarRating'
 import { useLogDrinking } from '@/app/lib/hooks/useDrinkingLogs'
-import { useUpdateWine } from '@/app/lib/hooks/useWines'
+import { useUpdateWine, useDeleteWine } from '@/app/lib/hooks/useWines'
 import type { Wine } from '@/app/types'
 
 interface DrinkWineSheetProps {
@@ -21,6 +21,7 @@ export function DrinkWineSheet({ wine, open, onClose, onDrank }: DrinkWineSheetP
 
   const logDrinking = useLogDrinking()
   const updateWine = useUpdateWine()
+  const deleteWine = useDeleteWine()
 
   async function handleDrank() {
     setRemoving(true)
@@ -35,9 +36,11 @@ export function DrinkWineSheet({ wine, open, onClose, onDrank }: DrinkWineSheetP
         tasting_notes: notes,
       })
 
-      // Decrement quantity or remove
+      // Decrement quantity or delete if last bottle
       if (wine.quantity > 1) {
         await updateWine.mutateAsync({ id: wine.id, quantity: wine.quantity - 1 })
+      } else {
+        await deleteWine.mutateAsync({ id: wine.id, cellarId: wine.cellar_id })
       }
 
       onDrank?.()

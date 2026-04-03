@@ -46,7 +46,7 @@ export default function AddWinePage() {
         <h1 className="text-xl font-bold text-gray-900">Add Wine</h1>
       </div>
 
-      <div className="px-4 pb-8">
+      <div className="px-4 pb-nav">
         <AddWineForm
           initial={{ cellar_id: selectedCellarId ?? '' }}
           onSubmit={handleSubmit}
