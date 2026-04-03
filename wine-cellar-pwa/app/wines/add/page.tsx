@@ -16,9 +16,13 @@ export default function AddWinePage() {
   const updateWine = useUpdateWine()
 
   async function handleSubmit(data: WineFormData, pendingPhoto?: File) {
+    const cellarId = selectedCellarId ?? data.cellar_id
+    if (!cellarId) {
+      throw new Error('No cellar selected. Please go back and select a cellar first.')
+    }
     const wine = await addWine.mutateAsync({
       ...data,
-      cellar_id: selectedCellarId ?? data.cellar_id,
+      cellar_id: cellarId,
     })
 
     // Upload photo now that we have a wine ID

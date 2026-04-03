@@ -86,32 +86,29 @@ export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }:
   }
 
   function autoFillFromOCR(text: string) {
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
     const fullText = text.toLowerCase()
 
-    // Try to match variety
+    // Only fill from known lists — OCR on wine labels is noisy
     if (!form.variety) {
-      const matchedVariety = VARIETIES.find(v => fullText.includes(v.toLowerCase()))
+      const matchedVariety = VARIETIES.find(v =>
+        v.length > 3 && fullText.includes(v.toLowerCase())
+      )
       if (matchedVariety) set('variety', matchedVariety)
     }
 
-    // Try to match region
     if (!form.region) {
-      const matchedRegion = REGIONS.find(r => fullText.includes(r.toLowerCase()))
+      const matchedRegion = REGIONS.find(r =>
+        r.length > 3 && fullText.includes(r.toLowerCase())
+      )
       if (matchedRegion) set('region', matchedRegion)
     }
 
-    // Try to find vintage year
+    // Only match clear 4-digit years
     if (!form.vintage) {
       const yearMatch = text.match(/\b(19[5-9]\d|20[0-2]\d)\b/)
       if (yearMatch) set('vintage', parseInt(yearMatch[1]))
     }
-
-    // Use first substantial line as wine name if empty
-    if (!form.name && lines.length > 0) {
-      const nameLine = lines.find(l => l.length > 2 && l.length < 60)
-      if (nameLine) set('name', nameLine)
-    }
+    // Don't auto-fill name — OCR text is too unreliable for wine labels
   }
 
   async function handleSubmit(e: React.FormEvent) {
