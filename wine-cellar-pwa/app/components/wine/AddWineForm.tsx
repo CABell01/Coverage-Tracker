@@ -115,7 +115,8 @@ export function AddWineForm({ initial, wineId, existingZones = [], onSubmit, sub
     setSaving(true)
     setError('')
     try {
-      await onSubmit(form, pendingPhoto ?? undefined)
+      const submitted = { ...form, quantity: form.quantity || 1, slot: form.slot || 1 }
+      await onSubmit(submitted, pendingPhoto ?? undefined)
     } catch (e: any) {
       setError(e.message ?? 'Something went wrong')
     } finally {
@@ -216,9 +217,10 @@ export function AddWineForm({ initial, wineId, existingZones = [], onSubmit, sub
         <Field label="Quantity">
           <input
             type="number"
-            value={form.quantity}
-            onChange={e => set('quantity', parseInt(e.target.value) || 1)}
+            value={form.quantity || ''}
+            onChange={e => set('quantity', parseInt(e.target.value) || 0)}
             min={1}
+            placeholder="1"
             className="input"
           />
         </Field>
@@ -263,8 +265,8 @@ export function AddWineForm({ initial, wineId, existingZones = [], onSubmit, sub
         <Field label="Slot / Position">
           <input
             type="number"
-            value={form.slot}
-            onChange={e => set('slot', parseInt(e.target.value) || 1)}
+            value={form.slot || ''}
+            onChange={e => set('slot', parseInt(e.target.value) || 0)}
             min={1}
             placeholder="e.g. 1"
             className="input"
