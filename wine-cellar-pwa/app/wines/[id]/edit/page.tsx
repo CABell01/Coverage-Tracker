@@ -1,9 +1,10 @@
 'use client'
 
 import { useRouter, useParams } from 'next/navigation'
-import { useWine, useUpdateWine } from '@/app/lib/hooks/useWines'
+import { useWine, useUpdateWine, useWines } from '@/app/lib/hooks/useWines'
 import { AddWineForm } from '@/app/components/wine/AddWineForm'
 import type { Wine } from '@/app/types'
+import { useMemo } from 'react'
 
 type WineFormData = Omit<Wine, 'id' | 'date_added'>
 
@@ -12,6 +13,11 @@ export default function EditWinePage() {
   const { id } = useParams<{ id: string }>()
   const { data: wine, isLoading } = useWine(id)
   const updateWine = useUpdateWine()
+  const { data: wines = [] } = useWines(wine?.cellar_id ?? null)
+  const existingZones = useMemo(
+    () => [...new Set(wines.map(w => w.zone).filter(Boolean))].sort(),
+    [wines]
+  )
 
   if (isLoading) {
     return (
@@ -43,6 +49,7 @@ export default function EditWinePage() {
         <AddWineForm
           initial={wine}
           wineId={wine.id}
+          existingZones={existingZones}
           onSubmit={handleSubmit}
           submitLabel="Save Changes"
         />

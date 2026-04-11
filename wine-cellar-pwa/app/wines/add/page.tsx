@@ -2,10 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import { AddWineForm } from '@/app/components/wine/AddWineForm'
-import { useAddWine, useUpdateWine } from '@/app/lib/hooks/useWines'
+import { useAddWine, useUpdateWine, useWines } from '@/app/lib/hooks/useWines'
 import { useCellarSelection } from '@/app/lib/hooks/useCellarSelection'
 import { uploadWinePhoto } from '@/app/lib/photos/photoUtils'
 import type { Wine } from '@/app/types'
+import { useMemo } from 'react'
 
 type WineFormData = Omit<Wine, 'id' | 'date_added'>
 
@@ -14,6 +15,11 @@ export default function AddWinePage() {
   const { selectedCellarId } = useCellarSelection()
   const addWine = useAddWine()
   const updateWine = useUpdateWine()
+  const { data: wines = [] } = useWines(selectedCellarId)
+  const existingZones = useMemo(
+    () => [...new Set(wines.map(w => w.zone).filter(Boolean))].sort(),
+    [wines]
+  )
 
   async function handleSubmit(data: WineFormData, pendingPhoto?: File) {
     const cellarId = selectedCellarId ?? data.cellar_id
@@ -53,6 +59,7 @@ export default function AddWinePage() {
       <div className="px-4 pb-nav">
         <AddWineForm
           initial={{ cellar_id: selectedCellarId ?? '' }}
+          existingZones={existingZones}
           onSubmit={handleSubmit}
           submitLabel="Add Wine"
         />

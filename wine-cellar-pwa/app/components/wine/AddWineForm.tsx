@@ -11,13 +11,12 @@ type WineFormData = Omit<Wine, 'id' | 'date_added'>
 interface AddWineFormProps {
   initial?: Partial<WineFormData>
   wineId?: string
+  existingZones?: string[]
   onSubmit: (data: WineFormData, pendingPhoto?: File) => Promise<void>
   submitLabel?: string
 }
 
-const ZONES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'Rack', 'Fridge', 'Other']
-
-export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }: AddWineFormProps) {
+export function AddWineForm({ initial, wineId, existingZones = [], onSubmit, submitLabel = 'Save' }: AddWineFormProps) {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -248,19 +247,26 @@ export function AddWineForm({ initial, wineId, onSubmit, submitLabel = 'Save' }:
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Zone / Location">
-          <select value={form.zone} onChange={e => set('zone', e.target.value)} className="input">
-            <option value="">None</option>
-            {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
-          </select>
+        <Field label="Zone / Row">
+          <input
+            value={form.zone}
+            onChange={e => set('zone', e.target.value)}
+            list="zones-list"
+            placeholder="e.g. Row 1, Rack A"
+            className="input"
+          />
+          <datalist id="zones-list">
+            {existingZones.map(z => <option key={z} value={z} />)}
+          </datalist>
         </Field>
 
-        <Field label="Slot">
+        <Field label="Slot / Position">
           <input
             type="number"
             value={form.slot}
             onChange={e => set('slot', parseInt(e.target.value) || 1)}
             min={1}
+            placeholder="e.g. 1"
             className="input"
           />
         </Field>
