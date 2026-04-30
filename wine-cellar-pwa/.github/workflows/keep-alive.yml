@@ -10,9 +10,15 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping keep-alive endpoint
+      - name: Ping Supabase directly
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          response=$(curl -s -o /tmp/body -w "%{http_code}" https://wine-cellar-cyan-gamma.vercel.app/api/keep-alive)
+          response=$(curl -s -o /tmp/body -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/cellars?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
           echo "HTTP status: $response"
           cat /tmp/body
           test "$response" = "200"
