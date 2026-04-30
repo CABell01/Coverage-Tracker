@@ -1,4 +1,24 @@
-__pycache__/
-*.pyc
+# Xcode project (created locally via Xcode > New Project)
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+build/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Database
 *.db
+
+# Environment
 .env
