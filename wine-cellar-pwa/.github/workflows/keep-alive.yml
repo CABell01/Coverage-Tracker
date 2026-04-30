@@ -15,10 +15,19 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          response=$(curl -s -o /tmp/body -w "%{http_code}" \
+          if [ -z "$SUPABASE_URL" ]; then echo "ERROR: SUPABASE_URL secret is empty"; exit 1; fi
+          if [ -z "$SUPABASE_ANON_KEY" ]; then echo "ERROR: SUPABASE_ANON_KEY secret is empty"; exit 1; fi
+          # Strip trailing slash if present
+          SUPABASE_URL="${SUPABASE_URL%/}"
+          echo "Pinging: ${SUPABASE_URL}/rest/v1/cellars"
+          response=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 30 \
             "${SUPABASE_URL}/rest/v1/cellars?select=id&limit=1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
           echo "HTTP status: $response"
           cat /tmp/body
+          if [ "$response" = "000" ]; then
+            echo "Connection failed — Supabase project may be paused. Unpause it at https://supabase.com/dashboard"
+            exit 1
+          fi
           test "$response" = "200"
