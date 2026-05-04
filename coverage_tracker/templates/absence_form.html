@@ -26,7 +26,7 @@
         <div class="form-group">
             <label>Absent Periods</label>
             <div class="checkbox-group">
-                {% for p in range(1, 9) %}
+                {% for p in range(1, max_period + 1) %}
                 <label>
                     <input type="checkbox" name="periods" value="{{ p }}"> Period {{ p }}
                 </label>

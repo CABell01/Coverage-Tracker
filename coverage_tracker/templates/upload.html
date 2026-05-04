@@ -2,52 +2,31 @@
 {% block title %}Upload CSV - Coverage Tracker{% endblock %}
 {% block content %}
 <div class="page-header">
-    <h2>Upload CSV Data</h2>
-    <p>Load or update teachers, schedules, and constraints from CSV files</p>
+    <h2>Upload Schedule Data</h2>
+    <p>Load or update teachers, schedules, and constraints from a single CSV file</p>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+<div class="card">
+    <h3>Upload Master Schedule</h3>
+    <p style="color: #666; font-size: 13px; margin-bottom: 12px;">
+        Upload one CSV file with all teacher information, schedules, and constraints.
+        Each row is one teacher-day-period slot.
+    </p>
+    <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
+        Required columns: <code>name, day_of_week, period, is_free</code><br>
+        Optional columns: <code>department, email, subject, room, constraints</code><br>
+        Constraints format: <code>type:value</code> separated by semicolons (e.g. <code>no_subject:Science;max_per_week:3</code>)
+    </p>
 
-    <div class="card">
-        <h3>Teachers</h3>
-        <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
-            Required columns: <code>name, department, email</code>
-        </p>
-        <form method="POST" action="/upload/teachers" enctype="multipart/form-data">
-            <div class="form-group">
+    <div style="display: flex; gap: 12px; align-items: start; flex-wrap: wrap;">
+        <form method="POST" action="/upload/data" enctype="multipart/form-data" style="display: flex; gap: 12px; align-items: end;">
+            <div class="form-group" style="margin-bottom: 0;">
                 <input type="file" name="file" accept=".csv" required>
             </div>
-            <button type="submit" class="btn btn-primary">Upload Teachers</button>
+            <button type="submit" class="btn btn-primary">Upload Schedule</button>
         </form>
+        <a href="/upload/template" class="btn btn-outline" style="margin-top: 2px;">Download Template CSV</a>
     </div>
-
-    <div class="card">
-        <h3>Schedules</h3>
-        <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
-            Required columns: <code>teacher_name, day_of_week, period, subject, room, is_free</code>
-        </p>
-        <form method="POST" action="/upload/schedules" enctype="multipart/form-data">
-            <div class="form-group">
-                <input type="file" name="file" accept=".csv" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Upload Schedules</button>
-        </form>
-    </div>
-
-    <div class="card">
-        <h3>Constraints</h3>
-        <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
-            Required columns: <code>teacher_name, constraint_type, constraint_value</code><br>
-            Types: <code>no_subject, no_period, max_per_week, no_consecutive</code>
-        </p>
-        <form method="POST" action="/upload/constraints" enctype="multipart/form-data">
-            <div class="form-group">
-                <input type="file" name="file" accept=".csv" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Upload Constraints</button>
-        </form>
-    </div>
-
 </div>
 
 <div class="card" style="margin-top: 20px;">

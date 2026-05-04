@@ -5,7 +5,7 @@ DEFAULT_DB_PATH = "coverage_tracker.db"
 
 # Period range (inclusive)
 MIN_PERIOD = 1
-MAX_PERIOD = 8
+MAX_PERIOD = 4
 
 VALID_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 

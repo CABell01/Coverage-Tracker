@@ -34,7 +34,7 @@ def main():
 
     # Record an absence for Bob Johnson (teacher_id=2) on 2026-03-23 (Monday)
     absence_id = record_absence(conn, teacher_id=2, date="2026-03-23",
-                                periods=[1, 2, 3, 4, 5], reason="Sick day")
+                                periods=[1, 2, 3, 4], reason="Sick day")
 
     # Find coverage options and assign a couple
     if absence_id:

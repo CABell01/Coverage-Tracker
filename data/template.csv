@@ -1,0 +1,5 @@
+name,department,email,day_of_week,period,subject,room,is_free,constraints
+Example Teacher,Math,teacher@school.edu,Monday,1,Algebra 1,Room 101,0,no_subject:Science
+Example Teacher,Math,teacher@school.edu,Monday,2,,,1,
+Example Teacher,Math,teacher@school.edu,Monday,3,Geometry,Room 101,0,
+Example Teacher,Math,teacher@school.edu,Monday,4,,,1,

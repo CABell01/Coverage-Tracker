@@ -260,3 +260,125 @@ def save_constraints(conn, records: list) -> tuple:
 
     conn.commit()
     return count, errors
+
+
+def load_unified_csv(filepath: str) -> tuple:
+    """Parse a unified CSV containing teachers, schedules, and constraints.
+
+    Expected columns: name, department, email, day_of_week, period, subject, room, is_free, constraints
+    Returns (teacher_records, schedule_records, constraint_records, errors).
+    """
+    teachers_seen = {}
+    schedule_records = []
+    constraint_set = set()
+    constraint_records = []
+    errors = []
+
+    required = {"name", "day_of_week", "period", "is_free"}
+
+    try:
+        with open(filepath, newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            fields = set(reader.fieldnames or [])
+
+            missing = required - fields
+            if missing:
+                return [], [], [], [f"CSV missing required columns: {', '.join(missing)}"]
+
+            for i, row in enumerate(reader, start=2):
+                name = row.get("name", "").strip()
+                if not name:
+                    errors.append(f"Row {i}: empty name")
+                    continue
+
+                if name not in teachers_seen:
+                    teachers_seen[name] = {
+                        "name": name,
+                        "department": row.get("department", "").strip(),
+                        "email": row.get("email", "").strip(),
+                    }
+
+                day = row.get("day_of_week", "").strip()
+                period_str = row.get("period", "").strip()
+                is_free_str = row.get("is_free", "").strip()
+
+                if day not in VALID_DAYS:
+                    errors.append(f"Row {i}: invalid day '{day}'")
+                    continue
+
+                try:
+                    period = int(period_str)
+                    if period < MIN_PERIOD or period > MAX_PERIOD:
+                        errors.append(f"Row {i}: period {period} out of range ({MIN_PERIOD}-{MAX_PERIOD})")
+                        continue
+                except ValueError:
+                    errors.append(f"Row {i}: invalid period '{period_str}'")
+                    continue
+
+                is_free = is_free_str in ("1", "true", "True", "yes", "Yes")
+
+                schedule_records.append({
+                    "teacher_name": name,
+                    "day_of_week": day,
+                    "period": period,
+                    "subject": row.get("subject", "").strip(),
+                    "room": row.get("room", "").strip(),
+                    "is_free": is_free,
+                })
+
+                constraints_str = row.get("constraints", "").strip()
+                if constraints_str:
+                    for entry in constraints_str.split(";"):
+                        entry = entry.strip()
+                        if not entry:
+                            continue
+                        if ":" not in entry:
+                            errors.append(f"Row {i}: invalid constraint format '{entry}' (expected type:value)")
+                            continue
+                        ctype, cvalue = entry.split(":", 1)
+                        ctype = ctype.strip()
+                        cvalue = cvalue.strip()
+
+                        if ctype not in VALID_CONSTRAINT_TYPES:
+                            errors.append(f"Row {i}: invalid constraint type '{ctype}'")
+                            continue
+
+                        key = (name, ctype, cvalue)
+                        if key not in constraint_set:
+                            constraint_set.add(key)
+                            constraint_records.append({
+                                "teacher_name": name,
+                                "constraint_type": ctype,
+                                "constraint_value": cvalue,
+                            })
+
+    except FileNotFoundError:
+        return [], [], [], [f"File not found: {filepath}"]
+    except Exception as e:
+        return [], [], [], [f"Error reading file: {e}"]
+
+    teacher_records = list(teachers_seen.values())
+    return teacher_records, schedule_records, constraint_records, errors
+
+
+def save_unified(conn, teacher_records, schedule_records, constraint_records) -> tuple:
+    """Save unified CSV data: teachers first, then schedules, then constraints."""
+    all_errors = []
+    counts = {}
+
+    t_count, t_errors = save_teachers(conn, teacher_records)
+    counts["teachers"] = t_count
+    all_errors.extend(t_errors)
+
+    s_count, s_errors = save_schedules(conn, schedule_records)
+    counts["schedules"] = s_count
+    all_errors.extend(s_errors)
+
+    if constraint_records:
+        c_count, c_errors = save_constraints(conn, constraint_records)
+        counts["constraints"] = c_count
+        all_errors.extend(c_errors)
+    else:
+        counts["constraints"] = 0
+
+    return counts, all_errors

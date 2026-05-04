@@ -6,9 +6,11 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash
 
 from .db import get_connection, init_db, get_setting, set_setting
+from flask import Response
 from .csv_loader import (
     load_teachers_csv, load_schedules_csv, load_constraints_csv,
     save_teachers, save_schedules, save_constraints,
+    load_unified_csv, save_unified,
 )
 from .scheduler import (
     record_absence, get_absent_teacher_schedule,
@@ -17,35 +19,22 @@ from .scheduler import (
 from .history import (
     get_teacher_coverage_history, get_fairness_report, get_absences_for_date,
 )
-from .config import DEFAULT_COVERAGE_THRESHOLD, DEFAULT_THRESHOLD_WINDOW_DAYS
+from .config import DEFAULT_COVERAGE_THRESHOLD, DEFAULT_THRESHOLD_WINDOW_DAYS, MAX_PERIOD
 
 
 def seed_sample_data(conn):
-    """Load sample CSVs if the database has no teachers."""
+    """Load sample data if the database has no teachers."""
     count = conn.execute("SELECT COUNT(*) as cnt FROM teachers").fetchone()["cnt"]
     if count > 0:
         return
 
     base = os.path.join(os.path.dirname(__file__), "..", "data")
+    unified_path = os.path.join(base, "sample_unified.csv")
 
-    teachers_path = os.path.join(base, "sample_teachers.csv")
-    schedules_path = os.path.join(base, "sample_schedules.csv")
-    constraints_path = os.path.join(base, "sample_constraints.csv")
-
-    if os.path.exists(teachers_path):
-        records, _ = load_teachers_csv(teachers_path)
-        if records:
-            save_teachers(conn, records)
-
-    if os.path.exists(schedules_path):
-        records, _ = load_schedules_csv(schedules_path)
-        if records:
-            save_schedules(conn, records)
-
-    if os.path.exists(constraints_path):
-        records, _ = load_constraints_csv(constraints_path)
-        if records:
-            save_constraints(conn, records)
+    if os.path.exists(unified_path):
+        teachers, schedules, constraints, _ = load_unified_csv(unified_path)
+        if teachers:
+            save_unified(conn, teachers, schedules, constraints)
 
 
 def create_app(db_path=None):
@@ -151,6 +140,7 @@ def create_app(db_path=None):
                     active_page="new_absence",
                     teachers=teachers,
                     today=date,
+                    max_period=MAX_PERIOD,
                 )
 
             period_list = [int(p) for p in periods]
@@ -170,6 +160,7 @@ def create_app(db_path=None):
             active_page="new_absence",
             teachers=teachers,
             today=datetime.now().strftime("%Y-%m-%d"),
+            max_period=MAX_PERIOD,
         )
 
     @app.route("/absences/<int:absence_id>")
@@ -335,8 +326,8 @@ def create_app(db_path=None):
             constraint_count=constraint_count,
         )
 
-    @app.route("/upload/teachers", methods=["POST"])
-    def upload_teachers():
+    @app.route("/upload/data", methods=["POST"])
+    def upload_data():
         conn = get_db()
         file = request.files.get("file")
         if not file:
@@ -349,84 +340,38 @@ def create_app(db_path=None):
             tmp_path = tmp.name
 
         try:
-            records, errors = load_teachers_csv(tmp_path)
+            teachers, schedules, constraints, errors = load_unified_csv(tmp_path)
             if errors:
                 for e in errors:
                     flash(f"Validation: {e}", "warning")
-            if records:
-                count, save_errors = save_teachers(conn, records)
+            if teachers:
+                counts, save_errors = save_unified(conn, teachers, schedules, constraints)
                 for e in save_errors:
                     flash(f"Save error: {e}", "error")
-                flash(f"Loaded {count} teachers successfully.", "success")
+                flash(
+                    f"Loaded {counts['teachers']} teachers, "
+                    f"{counts['schedules']} schedule entries, "
+                    f"{counts['constraints']} constraints.",
+                    "success",
+                )
             else:
-                flash("No valid teacher records found.", "error")
+                flash("No valid records found in CSV.", "error")
         finally:
             os.unlink(tmp_path)
 
         conn.close()
         return redirect(url_for("upload"))
 
-    @app.route("/upload/schedules", methods=["POST"])
-    def upload_schedules():
-        conn = get_db()
-        file = request.files.get("file")
-        if not file:
-            flash("No file selected.", "error")
-            conn.close()
-            return redirect(url_for("upload"))
-
-        with tempfile.NamedTemporaryFile(mode="wb", suffix=".csv", delete=False) as tmp:
-            file.save(tmp)
-            tmp_path = tmp.name
-
-        try:
-            records, errors = load_schedules_csv(tmp_path)
-            if errors:
-                for e in errors:
-                    flash(f"Validation: {e}", "warning")
-            if records:
-                count, save_errors = save_schedules(conn, records)
-                for e in save_errors:
-                    flash(f"Save error: {e}", "error")
-                flash(f"Loaded {count} schedule entries successfully.", "success")
-            else:
-                flash("No valid schedule records found.", "error")
-        finally:
-            os.unlink(tmp_path)
-
-        conn.close()
-        return redirect(url_for("upload"))
-
-    @app.route("/upload/constraints", methods=["POST"])
-    def upload_constraints():
-        conn = get_db()
-        file = request.files.get("file")
-        if not file:
-            flash("No file selected.", "error")
-            conn.close()
-            return redirect(url_for("upload"))
-
-        with tempfile.NamedTemporaryFile(mode="wb", suffix=".csv", delete=False) as tmp:
-            file.save(tmp)
-            tmp_path = tmp.name
-
-        try:
-            records, errors = load_constraints_csv(tmp_path)
-            if errors:
-                for e in errors:
-                    flash(f"Validation: {e}", "warning")
-            if records:
-                count, save_errors = save_constraints(conn, records)
-                for e in save_errors:
-                    flash(f"Save error: {e}", "error")
-                flash(f"Loaded {count} constraints successfully.", "success")
-            else:
-                flash("No valid constraint records found.", "error")
-        finally:
-            os.unlink(tmp_path)
-
-        conn.close()
-        return redirect(url_for("upload"))
+    @app.route("/upload/template")
+    def download_template():
+        template_path = os.path.join(os.path.dirname(__file__), "..", "data", "template.csv")
+        with open(template_path, "r") as f:
+            content = f.read()
+        return Response(
+            content,
+            mimetype="text/csv",
+            headers={"Content-Disposition": "attachment; filename=master_schedule_template.csv"},
+        )
 
     @app.route("/settings", methods=["GET", "POST"])
     def settings():

@@ -33,35 +33,31 @@ class TestScheduler(unittest.TestCase):
         ]
         save_teachers(self.conn, teachers)
 
-        # Monday schedule: Alice teaches P1-P3, free P4-P5
-        # Bob: free P1, teaches P2-P3, free P4, teaches P5
-        # Carol: teaches P1, free P2-P3, teaches P4-P5
-        # Dan: free P1-P2, teaches P3-P5
+        # Monday schedule: Alice teaches P1-P3, free P4
+        # Bob: free P1, teaches P2-P3, free P4
+        # Carol: teaches P1, free P2-P3, teaches P4
+        # Dan: free P1-P2, teaches P3-P4
         schedules = [
             # Alice
             {"teacher_name": "Alice", "day_of_week": "Monday", "period": 1, "subject": "Algebra", "room": "101", "is_free": False},
             {"teacher_name": "Alice", "day_of_week": "Monday", "period": 2, "subject": "Geometry", "room": "101", "is_free": False},
             {"teacher_name": "Alice", "day_of_week": "Monday", "period": 3, "subject": "Algebra", "room": "101", "is_free": False},
             {"teacher_name": "Alice", "day_of_week": "Monday", "period": 4, "subject": "", "room": "", "is_free": True},
-            {"teacher_name": "Alice", "day_of_week": "Monday", "period": 5, "subject": "", "room": "", "is_free": True},
             # Bob
             {"teacher_name": "Bob", "day_of_week": "Monday", "period": 1, "subject": "", "room": "", "is_free": True},
             {"teacher_name": "Bob", "day_of_week": "Monday", "period": 2, "subject": "Biology", "room": "Lab1", "is_free": False},
             {"teacher_name": "Bob", "day_of_week": "Monday", "period": 3, "subject": "Chemistry", "room": "Lab1", "is_free": False},
             {"teacher_name": "Bob", "day_of_week": "Monday", "period": 4, "subject": "", "room": "", "is_free": True},
-            {"teacher_name": "Bob", "day_of_week": "Monday", "period": 5, "subject": "Biology", "room": "Lab1", "is_free": False},
             # Carol
             {"teacher_name": "Carol", "day_of_week": "Monday", "period": 1, "subject": "English 9", "room": "201", "is_free": False},
             {"teacher_name": "Carol", "day_of_week": "Monday", "period": 2, "subject": "", "room": "", "is_free": True},
             {"teacher_name": "Carol", "day_of_week": "Monday", "period": 3, "subject": "", "room": "", "is_free": True},
             {"teacher_name": "Carol", "day_of_week": "Monday", "period": 4, "subject": "English 10", "room": "201", "is_free": False},
-            {"teacher_name": "Carol", "day_of_week": "Monday", "period": 5, "subject": "English 9", "room": "201", "is_free": False},
             # Dan
             {"teacher_name": "Dan", "day_of_week": "Monday", "period": 1, "subject": "", "room": "", "is_free": True},
             {"teacher_name": "Dan", "day_of_week": "Monday", "period": 2, "subject": "", "room": "", "is_free": True},
             {"teacher_name": "Dan", "day_of_week": "Monday", "period": 3, "subject": "History", "room": "301", "is_free": False},
             {"teacher_name": "Dan", "day_of_week": "Monday", "period": 4, "subject": "History", "room": "301", "is_free": False},
-            {"teacher_name": "Dan", "day_of_week": "Monday", "period": 5, "subject": "History", "room": "301", "is_free": False},
         ]
         save_schedules(self.conn, schedules)
 
