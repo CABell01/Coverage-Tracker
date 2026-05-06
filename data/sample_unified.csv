@@ -1,41 +1,41 @@
-name,department,email,day_of_week,period,subject,room,is_free,constraints
-Jane Smith,Math,jsmith@school.edu,Monday,1,Algebra 1,Room 101,0,no_subject:Science
-Jane Smith,Math,jsmith@school.edu,Monday,2,Geometry,Room 101,0,
-Jane Smith,Math,jsmith@school.edu,Monday,3,,,1,
-Jane Smith,Math,jsmith@school.edu,Monday,4,Algebra 2,Room 101,0,
-Bob Johnson,Science,bjohnson@school.edu,Monday,1,,,1,max_per_week:3
-Bob Johnson,Science,bjohnson@school.edu,Monday,2,Biology,Lab 3,0,
-Bob Johnson,Science,bjohnson@school.edu,Monday,3,Chemistry,Lab 3,0,
-Bob Johnson,Science,bjohnson@school.edu,Monday,4,,,1,
-Maria Garcia,English,mgarcia@school.edu,Monday,1,English 9,Room 205,0,
-Maria Garcia,English,mgarcia@school.edu,Monday,2,,,1,
-Maria Garcia,English,mgarcia@school.edu,Monday,3,English 10,Room 205,0,
-Maria Garcia,English,mgarcia@school.edu,Monday,4,English 9,Room 205,0,
-David Lee,History,dlee@school.edu,Monday,1,World History,Room 302,0,
-David Lee,History,dlee@school.edu,Monday,2,US History,Room 302,0,
-David Lee,History,dlee@school.edu,Monday,3,,,1,
-David Lee,History,dlee@school.edu,Monday,4,,,1,
-Sarah Chen,Math,schen@school.edu,Monday,1,,,1,no_subject:Science
-Sarah Chen,Math,schen@school.edu,Monday,2,Calculus,Room 103,0,
-Sarah Chen,Math,schen@school.edu,Monday,3,Statistics,Room 103,0,
-Sarah Chen,Math,schen@school.edu,Monday,4,,,1,
-Tom Wilson,Science,twilson@school.edu,Monday,1,Physics,Lab 5,0,max_per_week:3
-Tom Wilson,Science,twilson@school.edu,Monday,2,,,1,
-Tom Wilson,Science,twilson@school.edu,Monday,3,,,1,
-Tom Wilson,Science,twilson@school.edu,Monday,4,Physics,Lab 5,0,
-Amy Brown,English,abrown@school.edu,Monday,1,,,1,no_subject:Science
-Amy Brown,English,abrown@school.edu,Monday,2,Literature,Room 208,0,
-Amy Brown,English,abrown@school.edu,Monday,3,,,1,
-Amy Brown,English,abrown@school.edu,Monday,4,Writing,Room 208,0,
-James Davis,History,jdavis@school.edu,Monday,1,Government,Room 305,0,max_per_week:2
-James Davis,History,jdavis@school.edu,Monday,2,,,1,
-James Davis,History,jdavis@school.edu,Monday,3,Economics,Room 305,0,
-James Davis,History,jdavis@school.edu,Monday,4,Government,Room 305,0,
-Lisa Park,Math,lpark@school.edu,Monday,1,Pre-Algebra,Room 104,0,no_subject:Science
-Lisa Park,Math,lpark@school.edu,Monday,2,Pre-Algebra,Room 104,0,
-Lisa Park,Math,lpark@school.edu,Monday,3,,,1,
-Lisa Park,Math,lpark@school.edu,Monday,4,,,1,
-Michael Taylor,Science,mtaylor@school.edu,Monday,1,,,1,no_consecutive:true
-Michael Taylor,Science,mtaylor@school.edu,Monday,2,Earth Science,Lab 7,0,
-Michael Taylor,Science,mtaylor@school.edu,Monday,3,Earth Science,Lab 7,0,
-Michael Taylor,Science,mtaylor@school.edu,Monday,4,,,1,
+name,department,email,period,subject,room
+Jane Smith,Math,jsmith@school.edu,1,Algebra 1,Room 101
+Jane Smith,Math,jsmith@school.edu,2,Geometry,Room 101
+Jane Smith,Math,jsmith@school.edu,3,Planning,
+Jane Smith,Math,jsmith@school.edu,4,Algebra 2,Room 101
+Bob Johnson,Science,bjohnson@school.edu,1,Planning,
+Bob Johnson,Science,bjohnson@school.edu,2,Biology,Lab 3
+Bob Johnson,Science,bjohnson@school.edu,3,Chemistry,Lab 3
+Bob Johnson,Science,bjohnson@school.edu,4,Planning,
+Maria Garcia,English,mgarcia@school.edu,1,English 9,Room 205
+Maria Garcia,English,mgarcia@school.edu,2,Planning,
+Maria Garcia,English,mgarcia@school.edu,3,English 10,Room 205
+Maria Garcia,English,mgarcia@school.edu,4,English 9,Room 205
+David Lee,History,dlee@school.edu,1,World History,Room 302
+David Lee,History,dlee@school.edu,2,US History,Room 302
+David Lee,History,dlee@school.edu,3,Planning,
+David Lee,History,dlee@school.edu,4,Planning,
+Sarah Chen,Math,schen@school.edu,1,Planning,
+Sarah Chen,Math,schen@school.edu,2,Calculus,Room 103
+Sarah Chen,Math,schen@school.edu,3,Statistics,Room 103
+Sarah Chen,Math,schen@school.edu,4,Planning,
+Tom Wilson,Science,twilson@school.edu,1,Physics,Lab 5
+Tom Wilson,Science,twilson@school.edu,2,Planning,
+Tom Wilson,Science,twilson@school.edu,3,Planning,
+Tom Wilson,Science,twilson@school.edu,4,Physics,Lab 5
+Amy Brown,English,abrown@school.edu,1,Planning,
+Amy Brown,English,abrown@school.edu,2,Literature,Room 208
+Amy Brown,English,abrown@school.edu,3,Planning,
+Amy Brown,English,abrown@school.edu,4,Writing,Room 208
+James Davis,History,jdavis@school.edu,1,Government,Room 305
+James Davis,History,jdavis@school.edu,2,Planning,
+James Davis,History,jdavis@school.edu,3,Economics,Room 305
+James Davis,History,jdavis@school.edu,4,Government,Room 305
+Lisa Park,Math,lpark@school.edu,1,Pre-Algebra,Room 104
+Lisa Park,Math,lpark@school.edu,2,Pre-Algebra,Room 104
+Lisa Park,Math,lpark@school.edu,3,Planning,
+Lisa Park,Math,lpark@school.edu,4,Planning,
+Michael Taylor,Science,mtaylor@school.edu,1,Planning,
+Michael Taylor,Science,mtaylor@school.edu,2,Earth Science,Lab 7
+Michael Taylor,Science,mtaylor@school.edu,3,Earth Science,Lab 7
+Michael Taylor,Science,mtaylor@school.edu,4,Planning,

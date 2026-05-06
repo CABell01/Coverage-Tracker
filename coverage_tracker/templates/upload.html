@@ -3,19 +3,19 @@
 {% block content %}
 <div class="page-header">
     <h2>Upload Schedule Data</h2>
-    <p>Load or update teachers, schedules, and constraints from a single CSV file</p>
+    <p>Load or update teacher schedules from a single CSV file</p>
 </div>
 
 <div class="card">
     <h3>Upload Master Schedule</h3>
     <p style="color: #666; font-size: 13px; margin-bottom: 12px;">
-        Upload one CSV file with all teacher information, schedules, and constraints.
-        Each row is one teacher-day-period slot.
+        Upload one CSV with your teacher schedule. Each row is one teacher-period slot.
+        The schedule is applied to all weekdays (Mon–Fri).
     </p>
     <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
-        Required columns: <code>name, day_of_week, period, is_free</code><br>
-        Optional columns: <code>department, email, subject, room, constraints</code><br>
-        Constraints format: <code>type:value</code> separated by semicolons (e.g. <code>no_subject:Science;max_per_week:3</code>)
+        Required columns: <code>name, period, subject</code><br>
+        Optional columns: <code>department, email, room</code><br>
+        Use <strong>"Planning"</strong> or leave subject blank for free periods.
     </p>
 
     <div style="display: flex; gap: 12px; align-items: start; flex-wrap: wrap;">

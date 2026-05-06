@@ -15,8 +15,10 @@
         Period {{ period }}
         {% if class_info.get('subject') %}
             — {{ class_info.subject }} ({{ class_info.room }})
-        {% else %}
+        {% elif class_info.get('schedule_exists') %}
             — Free Period
+        {% else %}
+            — <span style="color: #dc2626;">Schedule data missing</span>
         {% endif %}
     </h3>
 
@@ -29,6 +31,11 @@
             <input type="hidden" name="absence_id" value="{{ absence.absence_id }}">
             <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
         </form>
+    </div>
+    {% elif not class_info.get('schedule_exists') %}
+    <div class="alert alert-warning">
+        No schedule data found for this teacher on {{ absence.date }} ({{ absence.date | day_of_week }}).
+        <a href="/upload">Upload schedule data</a> to fix this.
     </div>
     {% elif not class_info.get('subject') %}
     <div class="alert alert-info">Free period — no coverage needed.</div>

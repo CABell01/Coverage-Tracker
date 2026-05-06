@@ -169,7 +169,10 @@ def handle_record_absence(conn):
         room = class_info["room"]
 
         if not subject:
-            print(f"\n  Period {period}: Free period (no coverage needed)")
+            if class_info.get("schedule_exists"):
+                print(f"\n  Period {period}: Free period (no coverage needed)")
+            else:
+                print(f"\n  Period {period}: WARNING - No schedule data for this day/period")
             continue
 
         print(f"\n  ── Period {period}: {subject} in {room} ──")
@@ -217,8 +220,10 @@ def handle_view_today(conn):
                 class_info = get_absent_teacher_schedule(conn, ab["teacher_id"], date, period)
                 if class_info["subject"]:
                     print(f"    Period {period}: {class_info['subject']} in {class_info['room']} - UNCOVERED")
-                else:
+                elif class_info.get("schedule_exists"):
                     print(f"    Period {period}: Free period")
+                else:
+                    print(f"    Period {period}: No schedule data")
 
     # Offer to assign uncovered slots
     assign = input("\nAssign uncovered slots? [y/N]: ").strip()

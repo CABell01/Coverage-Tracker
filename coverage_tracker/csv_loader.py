@@ -262,19 +262,31 @@ def save_constraints(conn, records: list) -> tuple:
     return count, errors
 
 
-def load_unified_csv(filepath: str) -> tuple:
-    """Parse a unified CSV containing teachers, schedules, and constraints.
+def _is_free_period(subject: str) -> bool:
+    """Determine if a subject indicates a free/planning period."""
+    if not subject:
+        return True
+    return subject.lower() in ("planning", "plan", "free", "prep", "off")
 
-    Expected columns: name, department, email, day_of_week, period, subject, room, is_free, constraints
+
+def load_unified_csv(filepath: str) -> tuple:
+    """Parse a unified CSV containing teachers and schedules.
+
+    Required columns: name, period
+    Optional columns: department, email, subject, room, day_of_week, is_free, constraints
+
+    If day_of_week is missing or blank, schedule is replicated to all weekdays.
+    If is_free is missing or blank, it is inferred from subject (blank/Planning = free).
+
     Returns (teacher_records, schedule_records, constraint_records, errors).
     """
     teachers_seen = {}
-    schedule_records = []
+    raw_schedule_records = []
     constraint_set = set()
     constraint_records = []
     errors = []
 
-    required = {"name", "day_of_week", "period", "is_free"}
+    required = {"name", "period"}
 
     try:
         with open(filepath, newline="", encoding="utf-8-sig") as f:
@@ -284,6 +296,10 @@ def load_unified_csv(filepath: str) -> tuple:
             missing = required - fields
             if missing:
                 return [], [], [], [f"CSV missing required columns: {', '.join(missing)}"]
+
+            has_day_col = "day_of_week" in fields
+            has_is_free_col = "is_free" in fields
+            has_constraints_col = "constraints" in fields
 
             for i, row in enumerate(reader, start=2):
                 name = row.get("name", "").strip()
@@ -298,14 +314,7 @@ def load_unified_csv(filepath: str) -> tuple:
                         "email": row.get("email", "").strip(),
                     }
 
-                day = row.get("day_of_week", "").strip()
                 period_str = row.get("period", "").strip()
-                is_free_str = row.get("is_free", "").strip()
-
-                if day not in VALID_DAYS:
-                    errors.append(f"Row {i}: invalid day '{day}'")
-                    continue
-
                 try:
                     period = int(period_str)
                     if period < MIN_PERIOD or period > MAX_PERIOD:
@@ -315,42 +324,69 @@ def load_unified_csv(filepath: str) -> tuple:
                     errors.append(f"Row {i}: invalid period '{period_str}'")
                     continue
 
-                is_free = is_free_str in ("1", "true", "True", "yes", "Yes")
+                subject = row.get("subject", "").strip()
+                room = row.get("room", "").strip()
 
-                schedule_records.append({
-                    "teacher_name": name,
-                    "day_of_week": day,
-                    "period": period,
-                    "subject": row.get("subject", "").strip(),
-                    "room": row.get("room", "").strip(),
-                    "is_free": is_free,
-                })
+                # Determine is_free
+                if has_is_free_col:
+                    is_free_str = row.get("is_free", "").strip()
+                    if is_free_str:
+                        is_free = is_free_str in ("1", "true", "True", "yes", "Yes")
+                    else:
+                        is_free = _is_free_period(subject)
+                else:
+                    is_free = _is_free_period(subject)
 
-                constraints_str = row.get("constraints", "").strip()
-                if constraints_str:
-                    for entry in constraints_str.split(";"):
-                        entry = entry.strip()
-                        if not entry:
-                            continue
-                        if ":" not in entry:
-                            errors.append(f"Row {i}: invalid constraint format '{entry}' (expected type:value)")
-                            continue
-                        ctype, cvalue = entry.split(":", 1)
-                        ctype = ctype.strip()
-                        cvalue = cvalue.strip()
+                # Determine day(s)
+                day = ""
+                if has_day_col:
+                    day = row.get("day_of_week", "").strip()
+                    if day and day not in VALID_DAYS:
+                        errors.append(f"Row {i}: invalid day '{day}'")
+                        continue
 
-                        if ctype not in VALID_CONSTRAINT_TYPES:
-                            errors.append(f"Row {i}: invalid constraint type '{ctype}'")
-                            continue
+                if day:
+                    days = [day]
+                else:
+                    days = list(VALID_DAYS)
 
-                        key = (name, ctype, cvalue)
-                        if key not in constraint_set:
-                            constraint_set.add(key)
-                            constraint_records.append({
-                                "teacher_name": name,
-                                "constraint_type": ctype,
-                                "constraint_value": cvalue,
-                            })
+                for d in days:
+                    raw_schedule_records.append({
+                        "teacher_name": name,
+                        "day_of_week": d,
+                        "period": period,
+                        "subject": subject,
+                        "room": room,
+                        "is_free": is_free,
+                    })
+
+                # Parse constraints if column exists
+                if has_constraints_col:
+                    constraints_str = row.get("constraints", "").strip()
+                    if constraints_str:
+                        for entry in constraints_str.split(";"):
+                            entry = entry.strip()
+                            if not entry:
+                                continue
+                            if ":" not in entry:
+                                errors.append(f"Row {i}: invalid constraint format '{entry}' (expected type:value)")
+                                continue
+                            ctype, cvalue = entry.split(":", 1)
+                            ctype = ctype.strip()
+                            cvalue = cvalue.strip()
+
+                            if ctype not in VALID_CONSTRAINT_TYPES:
+                                errors.append(f"Row {i}: invalid constraint type '{ctype}'")
+                                continue
+
+                            key = (name, ctype, cvalue)
+                            if key not in constraint_set:
+                                constraint_set.add(key)
+                                constraint_records.append({
+                                    "teacher_name": name,
+                                    "constraint_type": ctype,
+                                    "constraint_value": cvalue,
+                                })
 
     except FileNotFoundError:
         return [], [], [], [f"File not found: {filepath}"]
@@ -358,7 +394,7 @@ def load_unified_csv(filepath: str) -> tuple:
         return [], [], [], [f"Error reading file: {e}"]
 
     teacher_records = list(teachers_seen.values())
-    return teacher_records, schedule_records, constraint_records, errors
+    return teacher_records, raw_schedule_records, constraint_records, errors
 
 
 def save_unified(conn, teacher_records, schedule_records, constraint_records) -> tuple:

@@ -51,6 +51,10 @@ def create_app(db_path=None):
         db_path = _tmp.name
         _tmp.close()
 
+    @app.template_filter('day_of_week')
+    def day_of_week_filter(date_str):
+        return datetime.strptime(date_str, "%Y-%m-%d").strftime("%A")
+
     def get_db():
         conn = get_connection(db_path)
         init_db(conn)

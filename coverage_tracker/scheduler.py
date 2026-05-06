@@ -62,16 +62,21 @@ def record_absence(conn, teacher_id: int, date: str, periods: list, reason: str 
 
 
 def get_absent_teacher_schedule(conn, teacher_id: int, date: str, period: int) -> dict:
-    """Get what class the absent teacher was supposed to teach."""
+    """Get what class the absent teacher was supposed to teach.
+
+    Returns dict with schedule_exists to distinguish 'free' from 'no data'.
+    """
     day = _get_day_of_week(date)
     row = conn.execute(
-        """SELECT subject, room FROM schedules
-           WHERE teacher_id = ? AND day_of_week = ? AND period = ? AND is_free = 0""",
+        """SELECT subject, room, is_free FROM schedules
+           WHERE teacher_id = ? AND day_of_week = ? AND period = ?""",
         (teacher_id, day, period),
     ).fetchone()
     if row:
-        return {"subject": row["subject"], "room": row["room"]}
-    return {"subject": "", "room": ""}
+        if row["is_free"]:
+            return {"subject": "", "room": "", "schedule_exists": True}
+        return {"subject": row["subject"], "room": row["room"], "schedule_exists": True}
+    return {"subject": "", "room": "", "schedule_exists": False}
 
 
 def find_coverage_options(conn, date: str, period: int, absent_teacher_id: int,
