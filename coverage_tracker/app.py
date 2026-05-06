@@ -18,6 +18,7 @@ from .scheduler import (
 )
 from .history import (
     get_teacher_coverage_history, get_fairness_report, get_absences_for_date,
+    get_teacher_absences,
 )
 from .config import DEFAULT_COVERAGE_THRESHOLD, DEFAULT_THRESHOLD_WINDOW_DAYS, MAX_PERIOD
 
@@ -109,6 +110,39 @@ def create_app(db_path=None):
         ).fetchall()
         conn.close()
         return render_template("teachers.html", active_page="teachers", teachers=rows)
+
+    @app.route("/teachers/<int:teacher_id>")
+    def teacher_detail(teacher_id):
+        conn = get_db()
+        teacher = conn.execute(
+            "SELECT id, name, department, email, active FROM teachers WHERE id = ?",
+            (teacher_id,),
+        ).fetchone()
+
+        if not teacher:
+            flash("Teacher not found.", "error")
+            conn.close()
+            return redirect(url_for("teachers"))
+
+        absences_list = get_teacher_absences(conn, teacher_id)
+        coverage_records = get_teacher_coverage_history(conn, teacher_id=teacher_id)
+
+        report = get_fairness_report(conn)
+        fairness = next((r for r in report if r["teacher_id"] == teacher_id), {
+            "semester_total": 0, "last_14_days": 0, "today": 0,
+            "flagged": False, "flag_reason": "",
+        })
+
+        conn.close()
+        return render_template(
+            "teacher_detail.html",
+            active_page="teachers",
+            teacher=teacher,
+            absences=absences_list,
+            absence_count=len(absences_list),
+            coverage_records=coverage_records,
+            fairness=fairness,
+        )
 
     @app.route("/absences")
     def absences():

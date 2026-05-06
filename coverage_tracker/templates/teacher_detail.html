@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{{ teacher.name }} - Coverage Tracker{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>{{ teacher.name }}</h2>
+    <p>{{ teacher.department or 'No department' }} — {{ teacher.email or 'No email' }}</p>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="label">Days Absent</div>
+        <div class="value red">{{ absence_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Times Covered (Semester)</div>
+        <div class="value blue">{{ fairness.semester_total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Covered (Last 14 Days)</div>
+        <div class="value orange">{{ fairness.last_14_days }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Status</div>
+        <div class="value {% if fairness.flagged %}red{% else %}green{% endif %}">
+            {% if fairness.flagged %}Flagged{% else %}OK{% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Absence History</h3>
+    {% if absences %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Periods</th>
+                <th>Reason</th>
+                <th>Coverage</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in absences %}
+            <tr>
+                <td>{{ a.date }}</td>
+                <td>{{ a.periods | join(', ') }}</td>
+                <td>{{ a.reason or '—' }}</td>
+                <td>
+                    {% set covered = a.period_coverage.values() | selectattr('__bool__') | list | length if a.period_coverage else 0 %}
+                    {% set total = a.periods | length %}
+                    {% if covered == total %}
+                        <span class="badge badge-green">Fully covered</span>
+                    {% elif covered > 0 %}
+                        <span class="badge badge-orange">{{ covered }}/{{ total }} covered</span>
+                    {% else %}
+                        <span class="badge badge-red">Uncovered</span>
+                    {% endif %}
+                </td>
+                <td><a href="/absences/{{ a.absence_id }}" class="btn btn-sm btn-outline">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #999;">No absences recorded.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Coverage Assignments Given</h3>
+    {% if coverage_records %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Period</th>
+                <th>Subject</th>
+                <th>Covered For</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in coverage_records %}
+            <tr>
+                <td>{{ r.date }}</td>
+                <td>{{ r.period }}</td>
+                <td>{{ r.subject or '—' }}</td>
+                <td>{{ r.absent_teacher }}</td>
+                <td>
+                    {% if r.status == 'assigned' %}
+                        <span class="badge badge-green">{{ r.status }}</span>
+                    {% elif r.status == 'cancelled' %}
+                        <span class="badge badge-gray">{{ r.status }}</span>
+                    {% else %}
+                        <span class="badge badge-blue">{{ r.status }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #999;">No coverage assignments.</p>
+    {% endif %}
+</div>
+
+<a href="/teachers" class="btn btn-outline" style="margin-top: 8px;">Back to Teachers</a>
+{% endblock %}

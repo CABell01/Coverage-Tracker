@@ -121,6 +121,54 @@ def get_fairness_report(conn, semester_start: str = None) -> list:
     return report
 
 
+def get_teacher_absences(conn, teacher_id: int) -> list:
+    """Get all absences for a specific teacher with coverage status."""
+    absences = conn.execute(
+        """SELECT a.id, a.teacher_id, a.date, a.periods, a.reason,
+                  t.name as teacher_name
+           FROM absences a
+           JOIN teachers t ON a.teacher_id = t.id
+           WHERE a.teacher_id = ?
+           ORDER BY a.date DESC""",
+        (teacher_id,),
+    ).fetchall()
+
+    results = []
+    for a in absences:
+        periods = [int(p) for p in a["periods"].split(",") if p.strip()]
+        period_coverage = {}
+
+        for p in periods:
+            coverage = conn.execute(
+                """SELECT cr.id, t.name as covering_teacher, cr.status
+                   FROM coverage_records cr
+                   JOIN teachers t ON cr.covering_teacher_id = t.id
+                   WHERE cr.absence_id = ? AND cr.period = ? AND cr.status != 'cancelled'""",
+                (a["id"], p),
+            ).fetchone()
+
+            if coverage:
+                period_coverage[p] = {
+                    "coverage_id": coverage["id"],
+                    "covering_teacher": coverage["covering_teacher"],
+                    "status": coverage["status"],
+                }
+            else:
+                period_coverage[p] = None
+
+        results.append({
+            "absence_id": a["id"],
+            "teacher_id": a["teacher_id"],
+            "teacher_name": a["teacher_name"],
+            "date": a["date"],
+            "periods": periods,
+            "reason": a["reason"],
+            "period_coverage": period_coverage,
+        })
+
+    return results
+
+
 def get_absences_for_date(conn, date: str) -> list:
     """Get all absences for a given date with coverage status."""
     absences = conn.execute(

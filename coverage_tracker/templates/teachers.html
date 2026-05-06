@@ -19,7 +19,7 @@
         <tbody>
             {% for t in teachers %}
             <tr>
-                <td><strong>{{ t.name }}</strong></td>
+                <td><a href="/teachers/{{ t.id }}" style="color: #1c92d1; text-decoration: none; font-weight: 600;">{{ t.name }}</a></td>
                 <td>{{ t.department or '—' }}</td>
                 <td>{{ t.email or '—' }}</td>
                 <td>
